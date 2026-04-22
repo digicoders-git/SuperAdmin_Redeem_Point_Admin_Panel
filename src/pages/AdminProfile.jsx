@@ -1,0 +1,326 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
+import Swal from "sweetalert2";
+import { 
+  ShieldCheck, 
+  LogOut, 
+  QrCode, 
+  Store, 
+  Shield, 
+  CreditCard, 
+  Bell, 
+  Share2, 
+  Settings, 
+  ChevronRight,
+  Sparkles,
+  Camera,
+  ExternalLink,
+  Phone,
+  Loader2
+} from "lucide-react";
+
+export default function AdminProfile() {
+  const navigate = useNavigate();
+  const [admin, setAdmin] = useState(JSON.parse(localStorage.getItem("adminInfo") || "{}"));
+  const adminMobile = localStorage.getItem("adminMobile") || admin.mobile || "";
+  const [subscription, setSubscription] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [supportPhone, setSupportPhone] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [subRes, notiRes, settingsRes] = await Promise.all([
+          api.get("/subscriptions/my"),
+          api.get("/notifications/admin"),
+          api.get("/subscriptions/settings/public"),
+        ]);
+        setSubscription(subRes.data.subscription);
+        setUnreadCount(notiRes.data.notifications?.filter(n => !n.isRead).length || 0);
+        setSupportPhone(settingsRes.data.settings?.supportPhone || "");
+      } catch (error) {
+        console.error("Error fetching admin profile data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+
+
+  }, []);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire({ icon: "error", title: "File too large", text: "Image must be under 5MB" });
+      return;
+    }
+    setUploadingPhoto(true);
+    const formData = new FormData();
+    formData.append("profilePhoto", file);
+    try {
+      const { data } = await api.post("/admin/profile/photo", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const updatedAdmin = { ...admin, profilePhoto: data.admin.profilePhoto };
+      setAdmin(updatedAdmin);
+      localStorage.setItem("adminInfo", JSON.stringify(updatedAdmin));
+      Swal.fire({ icon: "success", title: "Photo Updated!", timer: 1500, showConfirmButton: false });
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Upload Failed", text: err.response?.data?.message || "Could not upload photo" });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const logout = async () => {
+    const res = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Logout",
+      confirmButtonColor: "#800000",
+      cancelButtonColor: "#d1d5db",
+      background: "#fff",
+      customClass: {
+        confirmButton: 'rounded-xl px-6 py-2',
+        cancelButton: 'rounded-xl px-6 py-2'
+      }
+    });
+    if (!res.isConfirmed) return;
+    try {
+      await api.post("/admin/logout-all").catch(() => {});
+      localStorage.clear();
+      navigate("/", { replace: true });
+    } catch (e) {
+      localStorage.clear();
+      navigate("/", { replace: true });
+    }
+  };
+
+  const shareApp = async () => {
+    const shareData = {
+      title: "Redeem Partner Panel",
+      text: `Join ${admin.name || "us"} at Redeem to manage your shop and reward customers!`,
+      url: window.location.origin + "/admin/login",
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        Swal.fire({
+          icon: "success",
+          title: "Link Copied!",
+          text: "Admin panel link copied to clipboard",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        Swal.fire({ icon: "error", title: "Failed", text: "Could not share link" });
+      }
+    }
+  };
+
+  const MenuAction = ({ icon: Icon, label, onClick, badge, color = "text-gray-700", bgColor = "bg-gray-50" }) => (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-between p-4 mb-3 bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.98] transition-all duration-200 group"
+    >
+      <div className="flex items-center gap-4">
+        <div className={`${bgColor} ${color} p-2.5 rounded-xl transition-colors`}>
+          <Icon size={20} />
+        </div>
+        <span className="font-bold text-[15px] text-gray-800">{label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {badge !== undefined && badge > 0 && (
+          <span className="bg-[#800000] text-white text-[10px] font-black px-2 py-0.5 rounded-full min-w-[20px] h-5 flex items-center justify-center">
+            {badge > 9 ? "9+" : badge}
+          </span>
+        )}
+        <ChevronRight size={18} className="text-gray-300 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all" />
+      </div>
+    </button>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#F9FAFB] font-sans pb-28">
+      {/* Hero Header */}
+      <div className="relative bg-[#800000] pt-8 pb-22 px-6 overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 animate-pulse" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-white/5 to-transparent rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-1/2 left-1/2 w-full h-full bg-[radial-gradient(circle,white/5_1px,transparent_1px)] bg-[size:20px_20px] opacity-20 -translate-x-1/2 -translate-y-1/2" />
+
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="relative mb-6 group">
+            <div className="w-28 h-28 rounded-[35%] bg-white/10 backdrop-blur-md border border-white/20 p-1 shadow-2xl transition-transform duration-500 group-hover:rotate-6 overflow-hidden">
+              <div className="w-full h-full rounded-[35%] bg-gradient-to-br from-white to-gray-100 flex items-center justify-center shadow-inner overflow-hidden">
+                {admin.profilePhoto ? (
+                  <img src={ admin.profilePhoto} alt="Admin" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl font-black text-[#800000]">
+                    {(admin.name || admin.adminId || "A")[0].toUpperCase()}
+                  </span>
+                )}
+              </div>
+            </div>
+            <label className="absolute -bottom-1 -right-1 bg-amber-400 p-2 rounded-xl shadow-lg border-2 border-[#800000] cursor-pointer hover:bg-amber-500 transition-colors">
+              {uploadingPhoto ? (
+                <Loader2 className="text-white animate-spin" size={14} />
+              ) : (
+                <Camera className="text-white" size={14} />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoUpload}
+                disabled={uploadingPhoto}
+              />
+            </label>
+          </div>
+          <h1 className="text-white text-2xl font-black mb-1">{admin.name || "Partner Admin"}</h1>
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+            <ShieldCheck className="text-amber-400" size={13} />
+            <span className="text-white/90 text-[11px] font-bold uppercase tracking-widest">{admin.adminId}</span>
+          </div>
+          
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="px-6 -mt-16 relative z-20">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <button
+            onClick={() => navigate("/admin/notifications")}
+            className="bg-white rounded-[28px] p-5 shadow-xl shadow-gray-200/50 border border-gray-50 flex flex-col items-center gap-3 active:scale-[0.98] transition group"
+          >
+            <div className="bg-blue-50 text-blue-600 p-3 rounded-2xl group-hover:scale-110 transition-transform relative">
+              <Bell size={24} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">Alerts</p>
+              <p className="text-lg font-black text-gray-800">{unreadCount || '0'} New</p>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate("/admin/plans")}
+            className="bg-white rounded-[28px] p-5 shadow-xl shadow-gray-200/50 border border-gray-50 flex flex-col items-center gap-3 active:scale-[0.98] transition group"
+          >
+            <div className="bg-purple-50 text-purple-600 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+              <CreditCard size={24} />
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">Plan</p>
+              <p className="text-lg font-black text-gray-800">Explore</p>
+            </div>
+          </button>
+        </div>
+
+        {/* Subscription Banner */}
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-[28px] p-6 mb-8 relative overflow-hidden shadow-2xl shadow-gray-900/20 group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+          <div className="relative z-10 flex justify-between items-center">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded ${
+                  subscription?.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                }`}>
+                  {subscription?.status || 'No Active Plan'}
+                </span>
+              </div>
+              <h3 className="text-white text-xl font-bold mb-1">
+                {subscription ? subscription.planId?.name : 'Start Pro Today'}
+              </h3>
+              <p className="text-white/40 text-xs font-medium">
+                {subscription ? `Expires on ${new Date(subscription.endDate).toLocaleDateString()}` : 'Unlock advanced analytics & rewards'}
+              </p>
+            </div>
+            <button 
+              onClick={() => navigate("/admin/plans")}
+              className="bg-white/10 hover:bg-white/20 p-3 rounded-2xl border border-white/10 text-white transition-all active:scale-90"
+            >
+              <ExternalLink size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Action Menu */}
+        <div className="mb-8">
+          <h4 className="text-gray-400 text-[11px] font-black uppercase tracking-[0.2em] mb-4 ml-2">General Settings</h4>
+          <MenuAction 
+            icon={QrCode} 
+            label="Shop QR Code" 
+            onClick={() => navigate("/admin/qr-code")}
+            color="text-amber-600"
+            bgColor="bg-amber-50"
+          />
+          <MenuAction 
+            icon={Store} 
+            label="Shop Configuration" 
+            onClick={() => navigate("/admin/configuration")}
+            color="text-[#800000]"
+            bgColor="bg-[#800000]/5"
+          />
+          <MenuAction 
+            icon={Shield} 
+            label="Terms & Privacy" 
+            onClick={() => navigate("/admin/terms")}
+            color="text-blue-600"
+            bgColor="bg-blue-50"
+          />
+          <MenuAction 
+            icon={Share2} 
+            label="Partner Dashboard Share" 
+            onClick={shareApp} 
+            color="text-green-600"
+            bgColor="bg-green-50"
+          />
+          {supportPhone && (
+            <MenuAction
+              icon={Phone}
+              label="Contact Support"
+              onClick={() => window.open(`https://wa.me/${supportPhone}`, "_blank")}
+              color="text-emerald-600"
+              bgColor="bg-emerald-50"
+            />
+          )}
+        </div>
+
+        {/* Logout Section */}
+        <button
+          onClick={logout}
+          className="w-full bg-red-50 text-red-600 py-5 rounded-[24px] font-black text-sm uppercase tracking-[0.15em] flex items-center justify-center gap-3 active:scale-[0.98] transition hover:bg-red-100/80 border border-red-100"
+        >
+          <LogOut size={20} /> Sign Out Account
+        </button>
+        
+        <p className="text-center text-gray-300 text-[10px] font-bold mt-8 uppercase tracking-[0.3em]">Redeem • v1.0.4</p>
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 2s infinite ease-in-out;
+        }
+      ` }} />
+    </div>
+  );
+}
