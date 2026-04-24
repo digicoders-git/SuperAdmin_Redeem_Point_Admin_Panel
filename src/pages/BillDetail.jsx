@@ -203,8 +203,8 @@ export default function BillDetail() {
                   <ZoomIn size={28} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                 </div>
               </div>
-                <a href={bill.billImage} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-[#fff5f5] border border-gray-200 text-gray-700 font-bold px-4 py-3 rounded-xl text-sm w-full active:scale-95">
-                  <Image size={16} /> Open Original
+                <a href={bill.billImage} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-[#fff5f5] border border-gray-200 text-gray-700 font-bold px-4 py-3 rounded-xl text-sm w-full active:scale-95" onClick={(e) => { e.preventDefault(); setFullScreen(true); }}>
+                  <Image size={16} /> View Original
                 </a>
               </div>
             )}

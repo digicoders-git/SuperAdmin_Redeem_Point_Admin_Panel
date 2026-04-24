@@ -345,7 +345,7 @@ export default function Users() {
                       {dropdownOpen === u._id && (
                         <>
                           <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(null)} />
-                          <div className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 min-w-[140px] z-20">
+                          <div className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 min-w-[140px] z-[999]">
                             <button
                               onClick={() => { setDropdownOpen(null); setPointsModal(u); setPointsInput(""); setPointsReason(""); }}
                               className="w-full text-left px-4 py-2.5 text-sm font-semibold text-emerald-600 hover:bg-emerald-50 transition flex items-center gap-2"
