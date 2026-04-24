@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/axios";
-import { Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useGoogleLogin } from "@react-oauth/google";
 import Swal from "sweetalert2";
 
@@ -10,8 +10,8 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const shopIdFromQR = searchParams.get("shopId") || "";
 
-  const [isRegister, setIsRegister] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shopName, setShopName] = useState("");
@@ -51,34 +51,18 @@ export default function Login() {
     onError: () => Swal.fire({ icon: "error", title: "Google Login Failed" }),
   });
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (isRegister && form.password !== form.confirmPassword) {
-      Swal.fire({ icon: "error", title: "Mismatch", text: "Passwords do not match" });
-      return;
-    }
     setLoading(true);
     try {
-      if (isRegister) {
-        const { data } = await api.post("/users/register", {
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          shopId: shopIdFromQR,
-        });
-        localStorage.setItem("userToken", data.token);
-        localStorage.setItem("userInfo", JSON.stringify(data.user));
-        Swal.fire({ icon: "success", title: "Welcome!", timer: 800, showConfirmButton: false });
-      } else {
-        const { data } = await api.post("/users/login", {
-          email: form.email,
-          password: form.password,
-          shopId: shopIdFromQR,
-        });
-        localStorage.setItem("userToken", data.token);
-        localStorage.setItem("userInfo", JSON.stringify(data.user));
-        Swal.fire({ icon: "success", title: "Welcome Back!", timer: 800, showConfirmButton: false });
-      }
+      const { data } = await api.post("/users/login", {
+        email,
+        password,
+        shopId: shopIdFromQR,
+      });
+      localStorage.setItem("userToken", data.token);
+      localStorage.setItem("userInfo", JSON.stringify(data.user));
+      Swal.fire({ icon: "success", title: "Welcome!", timer: 800, showConfirmButton: false });
       setTimeout(() => { window.location.href = "/user/bills"; }, 300);
     } catch (err) {
       Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || "Something went wrong" });
@@ -101,48 +85,30 @@ export default function Login() {
             <img src="/WhatsApp Image 2026-04-23 at 17.37.03.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-extrabold text-[#1a0000] tracking-tight">{shopName || "Inaamify"}</h1>
-          <p className="text-sm text-gray-400 font-medium mt-1">{isRegister ? "Create your account" : "Sign in to continue"}</p>
+          <p className="text-sm text-gray-400 font-medium mt-1">Enter your email & password to continue</p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-[#800000]/10 border border-[#ffe4e4] p-7">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegister && (
-              <div>
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Full Name</label>
-                <div className={inputWrap}>
-                  <User size={18} className="text-[#800000] shrink-0" />
-                  <input type="text" placeholder="Enter your name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={inputCls} />
-                </div>
-              </div>
-            )}
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Email</label>
               <div className={inputWrap}>
                 <Mail size={18} className="text-[#800000] shrink-0" />
-                <input type="email" placeholder="Enter your email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className={inputCls} />
+                <input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputCls} />
               </div>
             </div>
             <div>
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Password</label>
               <div className={inputWrap}>
                 <Lock size={18} className="text-[#800000] shrink-0" />
-                <input type={showPwd ? "text" : "password"} placeholder="Enter password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required className={inputCls} />
+                <input type={showPwd ? "text" : "password"} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputCls} />
                 <button type="button" onClick={() => setShowPwd(!showPwd)} className="text-gray-400 shrink-0">
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
-            {isRegister && (
-              <div>
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Confirm Password</label>
-                <div className={inputWrap}>
-                  <Lock size={18} className="text-[#800000] shrink-0" />
-                  <input type="password" placeholder="Re-enter password" value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} required className={inputCls} />
-                </div>
-              </div>
-            )}
             <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60">
-              {loading ? <><Loader2 size={18} className="animate-spin" /> {isRegister ? "Creating..." : "Signing in..."}</> : isRegister ? "🎁 Start Earning" : "Sign In"}
+              {loading ? <><Loader2 size={18} className="animate-spin" /> Please wait...</> : "Continue"}
             </button>
 
             {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
@@ -158,15 +124,9 @@ export default function Login() {
                 </button>
               </>
             )}
-
-            <p className="text-center text-sm text-gray-500">
-              {isRegister ? "Already have an account? " : "Don't have an account? "}
-              <button type="button" onClick={() => setIsRegister(!isRegister)} className="text-[#800000] font-bold hover:underline">
-                {isRegister ? "Sign In" : "Register"}
-              </button>
-            </p>
           </form>
         </div>
+        <p className="text-center text-xs text-gray-400 mt-4">New here? Just enter your email & password — account will be created automatically.</p>
       </div>
     </div>
   );
