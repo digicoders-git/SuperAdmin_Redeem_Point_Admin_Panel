@@ -1,109 +1,31 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { ShieldCheck, Loader2, Phone, User } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-
-  // Already logged in → go to dashboard
-  useEffect(() => {
-    if (localStorage.getItem("adminToken")) {
-      navigate("/admin/dashboard", { replace: true });
-    }
-  }, []);
-  const [step, setStep] = useState(1); // 1: mobile, 2: otp, 3: name (if new user)
-  const [mobile, setMobile] = useState("");
-  const [otp, setOtp] = useState("");
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState(0);
-  const [isNewUser, setIsNewUser] = useState(false);
 
-  const sendOTP = async (e) => {
-    e?.preventDefault();
-    if (mobile.length !== 10) {
-      Swal.fire({ icon: "error", title: "Invalid Mobile", text: "Enter valid 10-digit mobile number" });
-      return;
-    }
-    setLoading(true);
-    try {
-      await api.post("/admin/send-otp", { mobile });
-      setStep(2);
-      setTimer(60);
-      const interval = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      Swal.fire({ icon: "success", title: "OTP Sent", text: "Check your phone for OTP", timer: 2000, showConfirmButton: false });
-    } catch (e) {
-      Swal.fire({ icon: "error", title: "Error", text: e.response?.data?.message || "Failed to send OTP" });
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (localStorage.getItem("adminToken")) navigate("/admin/dashboard", { replace: true });
+  }, []);
 
-  const verifyOTP = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (otp.length !== 4) {
-      Swal.fire({ icon: "error", title: "Invalid OTP", text: "Enter 4-digit OTP" });
-      return;
-    }
     setLoading(true);
     try {
-      const { data } = await api.post("/admin/verify-otp", { mobile, otp });
-      
-      if (data.isNewUser) {
-        // New user - ask for name
-        setIsNewUser(true);
-        setStep(3);
-      } else {
-        // Existing user - login
-        localStorage.setItem("adminToken", data.token);
-        localStorage.setItem("adminInfo", JSON.stringify(data.admin));
-        localStorage.setItem("adminMobile", mobile);
-        
-        Swal.fire({ icon: "success", title: "Welcome Back!", timer: 800, showConfirmButton: false });
-        
-        // Redirect after short delay
-        setTimeout(() => {
-          navigate("/admin/dashboard", { replace: true });
-        }, 300);
-      }
-    } catch (e) {
-      Swal.fire({ icon: "error", title: "Error", text: e.response?.data?.message || "Invalid OTP" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const completeRegistration = async (e) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      Swal.fire({ icon: "error", title: "Name Required", text: "Please enter your name" });
-      return;
-    }
-    setLoading(true);
-    try {
-      const { data } = await api.post("/admin/complete-registration", { mobile, name });
+      const { data } = await api.post("/admin/login", { email, password });
       localStorage.setItem("adminToken", data.token);
       localStorage.setItem("adminInfo", JSON.stringify(data.admin));
-      localStorage.setItem("adminMobile", mobile);
-      
-      Swal.fire({ icon: "success", title: "Welcome!", text: "Account created successfully", timer: 800, showConfirmButton: false });
-      
-      // Redirect after short delay
-      setTimeout(() => {
-        navigate("/admin/dashboard", { replace: true });
-      }, 300);
-    } catch (e) {
-      Swal.fire({ icon: "error", title: "Error", text: e.response?.data?.message || "Registration failed" });
+      Swal.fire({ icon: "success", title: "Welcome Back!", timer: 800, showConfirmButton: false });
+      setTimeout(() => navigate("/admin/dashboard", { replace: true }), 300);
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Login Failed", text: err.response?.data?.message || "Invalid credentials" });
     } finally {
       setLoading(false);
     }
@@ -120,110 +42,56 @@ export default function AdminLogin() {
             <img src="/WhatsApp Image 2026-04-23 at 17.37.03.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-extrabold text-[#1a0000] tracking-tight">Inaamify Admin</h1>
-          <p className="text-sm text-gray-400 font-medium mt-1">
-            {step === 1 && "Enter your mobile number"}
-            {step === 2 && "Verify OTP"}
-            {step === 3 && "Complete your profile"}
-          </p>
+          <p className="text-sm text-gray-400 font-medium mt-1">Sign in to your account</p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-[#800000]/10 border border-[#ffe4e4] p-7">
-          {/* Step 1: Mobile Number */}
-          {step === 1 && (
-            <form onSubmit={sendOTP} className="space-y-4">
-              <div>
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Mobile Number</label>
-                <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3.5 gap-3">
-                  <Phone size={18} className="text-[#800000] shrink-0" />
-                  <input
-                    type="tel"
-                    placeholder="Enter 10-digit mobile"
-                    value={mobile}
-                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                    required
-                    className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium"
-                  />
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={loading || mobile.length !== 10}
-                className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {loading ? <><Loader2 size={18} className="animate-spin" /> Sending...</> : "Send OTP"}
-              </button>
-            </form>
-          )}
-
-          {/* Step 2: OTP Verification */}
-          {step === 2 && (
-            <form onSubmit={verifyOTP} className="space-y-4">
-              <div>
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Enter OTP</label>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Email</label>
+              <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3.5 gap-3">
+                <Mail size={18} className="text-[#800000] shrink-0" />
                 <input
-                  type="text"
-                  placeholder="Enter 4-digit OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  maxLength={4}
-                  className="w-full bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3.5 text-center text-2xl font-bold tracking-widest text-gray-800 placeholder-gray-400 outline-none"
+                  className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium"
                 />
-                <div className="flex justify-between items-center text-xs px-1 mt-2">
-                  <p className="text-gray-500">OTP sent to {mobile}</p>
-                  {timer > 0 ? (
-                    <p className="font-bold text-[#800000]">Resend in {timer}s</p>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => { setOtp(""); sendOTP(); }}
-                      className="font-bold text-[#800000] hover:underline"
-                    >
-                      Resend OTP
-                    </button>
-                  )}
-                </div>
               </div>
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 4}
-                className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {loading ? <><Loader2 size={18} className="animate-spin" /> Verifying...</> : "Verify OTP"}
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Password</label>
+              <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3.5 gap-3">
+                <Lock size={18} className="text-[#800000] shrink-0" />
+                <input
+                  type={showPwd ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium"
+                />
+                <button type="button" onClick={() => setShowPwd(!showPwd)} className="text-gray-400 shrink-0">
+                  {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {loading ? <><Loader2 size={18} className="animate-spin" /> Signing in...</> : "Sign In"}
+            </button>
+            <p className="text-center text-sm text-gray-500">
+              Don't have an account?{" "}
+              <button type="button" onClick={() => navigate("/admin/register")} className="text-[#800000] font-bold hover:underline">
+                Register
               </button>
-            </form>
-          )}
-
-          {/* Step 3: Name Input (New User) */}
-          {step === 3 && (
-            <form onSubmit={completeRegistration} className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
-                <p className="text-sm font-bold text-green-700">✨ New Account Detected!</p>
-                <p className="text-xs text-green-600 mt-1">Please enter your name to complete registration</p>
-              </div>
-              <div>
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Your Name</label>
-                <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3.5 gap-3">
-                  <User size={18} className="text-[#800000] shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium"
-                  />
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !name.trim()}
-                className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {loading ? <><Loader2 size={18} className="animate-spin" /> Creating...</> : "Complete Registration"}
-              </button>
-            </form>
-          )}
+            </p>
+          </form>
         </div>
       </div>
     </div>
