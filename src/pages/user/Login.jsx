@@ -30,7 +30,9 @@ export default function Login() {
       const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
         headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
       });
+      if (!userInfoRes.ok) throw new Error("Failed to fetch Google user info");
       const userInfo = await userInfoRes.json();
+      if (!userInfo.email) throw new Error("No email from Google");
       const { data } = await api.post("/users/google-login", {
         googleUserInfo: userInfo,
         shopId: shopIdFromQR,
@@ -46,7 +48,7 @@ export default function Login() {
         }
       }, 300);
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Google Login Failed", text: err.response?.data?.message || "Try again" });
+      Swal.fire({ icon: "error", title: "Google Login Failed", text: err.response?.data?.message || err.message || "Try again" });
     } finally {
       setLoading(false);
     }
