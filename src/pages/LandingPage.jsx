@@ -9,10 +9,10 @@ export default function LandingPage() {
       <div className="w-full max-w-md">
         {/* Logo/Title */}
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-white/20">
-            <span className="text-white font-extrabold text-3xl">R</span>
+          <div className="w-24 h-24 rounded-3xl mx-auto mb-4 overflow-hidden shadow-lg border-2 border-white/20">
+            <img src="/WhatsApp Image 2026-04-23 at 17.37.03.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-white font-extrabold text-3xl mb-2">Redeem</h1>
+          <h1 className="text-white font-extrabold text-3xl mb-2">Inaamify</h1>
           <p className="text-white/70 text-sm font-medium">Choose how you want to continue</p>
         </div>
 
@@ -59,7 +59,7 @@ export default function LandingPage() {
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-white/50 text-xs font-medium">© 2026 Redeem. All rights reserved.</p>
+          <p className="text-white/50 text-xs font-medium">© 2026 Inaamify. All rights reserved.</p>
         </div>
       </div>
     </div>

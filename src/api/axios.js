@@ -36,22 +36,30 @@ api.interceptors.response.use(
   (err) => {
     const status = err.response?.status;
     const url = err.config?.url || "";
+    const currentPath = window.location.pathname;
 
-    // Don't logout on subscription check failures
+    // Don't logout on these endpoints
     const isSubscriptionCheck = url.includes("/subscriptions/my");
+    const isAuthEndpoint = url.includes("/login") || url.includes("/verify-otp") || url.includes("/send-otp") || url.includes("/complete-registration") || url.includes("/google-login") || url.includes("/update-fcm-token") || url.includes("/shop-info");
+    // Don't logout if already on login page
+    const isOnLoginPage = currentPath === "/user/login" || currentPath === "/admin/login" || currentPath === "/";
 
-    if (status === 401 && !isSubscriptionCheck) {
-      const isUserPath = window.location.pathname.startsWith("/user");
+    if (status === 401 && !isSubscriptionCheck && !isAuthEndpoint && !isOnLoginPage) {
+      const isUserPath = currentPath.startsWith("/user");
       if (isUserPath) {
-        localStorage.removeItem("userToken");
-        localStorage.removeItem("userInfo");
-        if (window.location.pathname !== "/user/login")
+        const token = localStorage.getItem("userToken");
+        if (token) {
+          localStorage.removeItem("userToken");
+          localStorage.removeItem("userInfo");
           window.location.href = "/user/login";
+        }
       } else {
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("adminInfo");
-        if (window.location.pathname !== "/admin/login" && window.location.pathname !== "/")
+        const token = localStorage.getItem("adminToken");
+        if (token) {
+          localStorage.removeItem("adminToken");
+          localStorage.removeItem("adminInfo");
           window.location.href = "/admin/login";
+        }
       }
     }
     return Promise.reject(err);

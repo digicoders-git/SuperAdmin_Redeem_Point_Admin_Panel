@@ -170,7 +170,7 @@ export default function AdminBills() {
           <div className="space-y-3">
             {filtered.length === 0 && <p className="text-center text-gray-400 text-sm py-8">No bills found</p>}
             {filtered.map((b) => (
-              <div key={b._id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 cursor-pointer active:scale-[0.99] transition-transform" onClick={() => navigate(`/bills/${b._id}`, { state: { bill: b } })}>
+              <div key={b._id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 cursor-pointer active:scale-[0.99] transition-transform" onClick={() => navigate(`/admin/bills/${b._id}`, { state: { bill: b } })}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="min-w-0 flex-1">
                     <p className="font-extrabold text-[#800000] text-lg leading-tight">₹{b.amount}</p>

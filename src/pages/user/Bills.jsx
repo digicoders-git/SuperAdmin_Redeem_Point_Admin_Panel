@@ -16,6 +16,7 @@ export default function Bills() {
   const [shopName, setShopName] = useState("");
   const [rewards, setRewards] = useState([]);
   const [shopLogo, setShopLogo] = useState(null);
+  const [hasShop, setHasShop] = useState(true);
   const serverBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
 
   const loadProfile = () =>
@@ -23,6 +24,7 @@ export default function Bills() {
       setUserPoints(data.user.walletPoints || 0);
       setUserName(data.user.name || "");
       setShopName(data.user.shopName || "");
+      setHasShop(!!data.user.shopId);
       if (data.user.shopId) {
         api.get(`/admin/shop/${data.user.shopId}`).then(({ data: d }) => {
           if (d.admin?.profilePhoto) {
@@ -46,6 +48,10 @@ export default function Bills() {
 
   const upload = async (e) => {
     e.preventDefault();
+    if (!hasShop) {
+      Swal.fire({ icon: "warning", title: "No Shop Linked", text: "Please register with a shop first to upload bills and earn points.", confirmButtonColor: "#800000" });
+      return;
+    }
     if (!file) return;
     setUploading(true);
     try {
@@ -83,7 +89,7 @@ export default function Bills() {
                 <span className="text-[#800000] font-extrabold text-xl">{shopName?.[0]?.toUpperCase() || "R"}</span>
               )}
             </div>
-            <h1 className="text-white font-bold text-lg tracking-wide">{shopName || "Redeem App"}</h1>
+            <h1 className="text-white font-bold text-lg tracking-wide">{shopName || "Inaamify"}</h1>
           </div>
           <div onClick={() => navigate("/user/profile")} className="w-11 h-11 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer">
             <User className="text-[#800000]" size={24} />
@@ -92,6 +98,16 @@ export default function Bills() {
       </div>
 
       <div className="px-5 -mt-14 relative z-20">
+        {/* No Shop Banner */}
+        {!hasShop && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
+            <span className="text-2xl">🏪</span>
+            <div>
+              <p className="font-bold text-amber-800 text-sm">No Shop Linked</p>
+              <p className="text-amber-700 text-xs mt-0.5">Scan a shop's QR code or ask for a shop link to register and start earning points & rewards.</p>
+            </div>
+          </div>
+        )}
         {/* Points Card */}
         <div className="bg-white rounded-3xl p-6 flex justify-between items-center shadow-[0_8px_30px_rgb(0,0,0,0.06)] mb-6 border border-gray-100 relative overflow-hidden">
           <div className="absolute right-[-20px] top-[-20px] w-32 h-32 border-4 border-[#ffe4e4] rounded-full opacity-50 pointer-events-none" />
@@ -105,7 +121,7 @@ export default function Bills() {
         </div>
 
         {/* Upload Form */}
-        <div className="bg-white rounded-[24px] p-6 shadow-sm mb-8 border border-gray-100 flex flex-col gap-5">
+        <div className={`bg-white rounded-[24px] p-6 shadow-sm mb-8 border border-gray-100 flex flex-col gap-5 ${!hasShop ? "opacity-50 pointer-events-none" : ""}`}>
           <div className="flex gap-4 items-center">
             <div className="w-[70px] h-[90px] bg-[#ffe4e4] rounded-2xl p-[6px] shadow-inner flex-shrink-0">
               <div className="w-full h-full bg-white rounded-xl flex flex-col items-center justify-center border-2 border-[#800000] shadow-sm relative overflow-hidden">
@@ -122,8 +138,8 @@ export default function Bills() {
             </div>
           </div>
           <form onSubmit={upload} className="flex flex-col gap-4">
-            <label className="border-2 border-dashed border-[#f97316]/30 bg-[#f97316]/5 rounded-xl cursor-pointer flex items-center justify-center py-3 px-4 min-h-[50px]">
-              {file ? <span className="text-[#f97316] font-bold text-[14px] truncate px-2">{file.name}</span> : <span className="text-[#f97316] font-bold text-[14px]">Select Purchase Slip</span>}
+            <label className="border-2 border-dashed border-blue-400 bg-blue-50 rounded-xl cursor-pointer flex items-center justify-center py-3 px-4 min-h-[50px]">
+              {file ? <span className="text-blue-600 font-bold text-[14px] truncate px-2">{file.name}</span> : <span className="text-blue-600 font-bold text-[14px]">📎 Select Purchase Slip</span>}
               <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
             </label>
             <div className="relative">
@@ -137,7 +153,7 @@ export default function Bills() {
         </div>
 
         {/* Rewards Carousel */}
-        {rewards.length > 0 && (
+        {hasShop && rewards.length > 0 && (
           <div className="mb-8">
             <h3 className="text-[#800000] text-xl font-bold mb-4 px-1">Redeem Your Points</h3>
             <div className="flex overflow-x-auto gap-4 pb-4 -mx-1 px-1 snap-x no-scrollbar">

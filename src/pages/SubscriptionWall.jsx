@@ -114,7 +114,7 @@ export default function SubscriptionWall() {
       setPendingSubs(subRes.data.pendingSubscriptions || []);
       
       // Redirect to dashboard
-      navigate("/dashboard", { replace: true });
+      navigate("/admin/dashboard", { replace: true });
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -181,7 +181,7 @@ export default function SubscriptionWall() {
                 timer: 2000,
                 showConfirmButton: false,
               });
-              navigate("/dashboard", { replace: true });
+              navigate("/admin/dashboard", { replace: true });
             }
 
             // Refresh subscription data

@@ -82,7 +82,8 @@ export default function AdminQRCode() {
 
         {/* QR Code */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-center mb-6 w-full" ref={qrRef}>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-5">Scan to Register</p>
+          <p className="text-base font-extrabold text-gray-800 mb-1">{admin?.name || admin?.adminId}</p>
+          <p className="text-xs text-gray-400 mb-5 uppercase tracking-wider">Scan to Register</p>
           <QRCodeCanvas
             value={registerUrl}
             size={220}
@@ -91,7 +92,8 @@ export default function AdminQRCode() {
             level="H"
             includeMargin={true}
           />
-          <p className="text-xs text-gray-400 mt-5 text-center px-4 leading-relaxed">
+          <p className="text-xs font-bold text-[#800000] mt-4 tracking-wide">⚡ Powered by Inaamify</p>
+          <p className="text-xs text-gray-400 mt-1 text-center px-4 leading-relaxed">
             User scan kare aur directly register form par redirect ho jayega with Shop ID auto-filled
           </p>
         </div>

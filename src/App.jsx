@@ -33,6 +33,7 @@ import UserRewardDetail from "./pages/user/RewardDetail";
 import UserRedemptionDetail from "./pages/user/RedemptionDetail";
 import ShopSelection from "./pages/user/ShopSelection";
 import UserPrivacyPolicy from "./pages/user/PrivacyPolicy";
+import UserTerms from "./pages/user/Terms";
 
 import BottomNav from "./components/BottomNav";
 import UserBottomNav from "./components/UserBottomNav";
@@ -168,8 +169,13 @@ export default function App() {
           <Route path="/user/rewards/:id" element={<UserProtectedRoute><UserRewardDetail /></UserProtectedRoute>} />
           <Route path="/user/redemptions/:id" element={<UserProtectedRoute><UserRedemptionDetail /></UserProtectedRoute>} />
           <Route path="/user/privacy-policy" element={<UserPrivacyPolicy />} />
+          <Route path="/user/terms" element={<UserProtectedRoute><UserTerms /></UserProtectedRoute>} />
           
           {/* Common */}
+          <Route path="/profile" element={<Navigate to="/user/profile" replace />} />
+          <Route path="/bills" element={<Navigate to="/user/bills" replace />} />
+          <Route path="/rewards" element={<Navigate to="/user/rewards" replace />} />
+          <Route path="/terms" element={<Navigate to="/user/terms" replace />} />
           <Route path="/privacy-policy" element={<AdminPrivacyPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

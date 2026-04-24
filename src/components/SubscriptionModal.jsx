@@ -29,7 +29,7 @@ export default function SubscriptionModal() {
 
           {/* Button */}
           <button
-            onClick={() => navigate("/subscription")}
+            onClick={() => navigate("/admin/subscription")}
             className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2"
           >
             <Zap size={18} />

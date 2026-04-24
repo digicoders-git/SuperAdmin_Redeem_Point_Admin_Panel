@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { ShieldCheck, Loader2, Phone, User } from "lucide-react";
@@ -6,6 +6,13 @@ import Swal from "sweetalert2";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+
+  // Already logged in → go to dashboard
+  useEffect(() => {
+    if (localStorage.getItem("adminToken")) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, []);
   const [step, setStep] = useState(1); // 1: mobile, 2: otp, 3: name (if new user)
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
@@ -66,7 +73,7 @@ export default function AdminLogin() {
         
         // Redirect after short delay
         setTimeout(() => {
-          window.location.href = "/admin/dashboard";
+          navigate("/admin/dashboard", { replace: true });
         }, 300);
       }
     } catch (e) {
@@ -93,7 +100,7 @@ export default function AdminLogin() {
       
       // Redirect after short delay
       setTimeout(() => {
-        window.location.href = "/admin/dashboard";
+        navigate("/admin/dashboard", { replace: true });
       }, 300);
     } catch (e) {
       Swal.fire({ icon: "error", title: "Error", text: e.response?.data?.message || "Registration failed" });
@@ -109,10 +116,10 @@ export default function AdminLogin() {
 
       <div className="w-full max-w-sm relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#800000] to-[#6b0000] rounded-3xl shadow-lg shadow-[#800000]/30 flex items-center justify-center mb-4">
-            <ShieldCheck size={36} className="text-white" />
+          <div className="w-20 h-20 rounded-3xl shadow-lg overflow-hidden mb-4">
+            <img src="/WhatsApp Image 2026-04-23 at 17.37.03.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-2xl font-extrabold text-[#1a0000] tracking-tight">Redeem Admin</h1>
+          <h1 className="text-2xl font-extrabold text-[#1a0000] tracking-tight">Inaamify Admin</h1>
           <p className="text-sm text-gray-400 font-medium mt-1">
             {step === 1 && "Enter your mobile number"}
             {step === 2 && "Verify OTP"}

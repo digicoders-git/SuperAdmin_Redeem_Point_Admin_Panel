@@ -16,6 +16,7 @@ export default function BillDetail() {
   const [bill, setBill] = useState(state?.bill);
   const [editingAmount, setEditingAmount] = useState(false);
   const [newAmount, setNewAmount] = useState("");
+  const [editReason, setEditReason] = useState("");
   const [amountSaving, setAmountSaving] = useState(false);
   const [reason, setReason] = useState("");
   const [actionId, setActionId] = useState(null);
@@ -46,13 +47,35 @@ export default function BillDetail() {
   };
 
   const saveAmount = async () => {
-    if (!newAmount || isNaN(newAmount) || Number(newAmount) <= 0) return;
+    if (!newAmount || isNaN(newAmount) || Number(newAmount) <= 0) {
+      Swal.fire({ icon: "error", title: "Invalid Amount", text: "Enter a valid amount" });
+      return;
+    }
+    if (!editReason.trim()) {
+      Swal.fire({ icon: "error", title: "Reason Required", text: "Please enter a reason for editing" });
+      return;
+    }
+    const confirm = await Swal.fire({
+      icon: "question",
+      title: "Update Bill Amount?",
+      html: `<div class="text-left text-sm space-y-1">
+        <p><b>Old Amount:</b> ₹${bill.amount}</p>
+        <p><b>New Amount:</b> ₹${newAmount}</p>
+        <p><b>Reason:</b> ${editReason}</p>
+        <p class="text-gray-500 text-xs mt-2">User will be notified about this change.</p>
+      </div>`,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Update",
+      confirmButtonColor: "#800000",
+    });
+    if (!confirm.isConfirmed) return;
     setAmountSaving(true);
     try {
-      const { data } = await api.patch(`/bills/admin/${bill._id}/edit-amount`, { amount: Number(newAmount) });
+      const { data } = await api.patch(`/bills/admin/${bill._id}/edit-amount`, { amount: Number(newAmount), editReason });
       setBill((b) => ({ ...b, amount: data.bill.amount }));
       setEditingAmount(false);
-      Swal.fire({ icon: "success", title: "Amount Updated!", timer: 1200, showConfirmButton: false });
+      setEditReason("");
+      Swal.fire({ icon: "success", title: "Amount Updated!", text: "User has been notified.", timer: 1500, showConfirmButton: false });
     } catch (err) {
       Swal.fire({ icon: "error", title: "Failed", text: err.response?.data?.message || "Could not update" });
     } finally {
@@ -74,8 +97,8 @@ export default function BillDetail() {
           <div className="bg-gradient-to-br from-[#800000] to-[#6b0000] rounded-2xl p-4 text-white">
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs text-white/70 uppercase tracking-wider">Amount</p>
-              {bill.status === "pending" && !editingAmount && (
-                <button onClick={() => { setEditingAmount(true); setNewAmount(bill.amount); }} className="bg-white/10 p-1.5 rounded-lg">
+              {!editingAmount && (
+                <button onClick={() => { setEditingAmount(true); setNewAmount(bill.amount); setEditReason(""); }} className="bg-white/10 p-1.5 rounded-lg">
                   <Pencil size={13} className="text-white" />
                 </button>
               )}
@@ -93,11 +116,27 @@ export default function BillDetail() {
         </div>
 
         {editingAmount && (
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={saveAmount} disabled={amountSaving} className="bg-[#800000] text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 disabled:opacity-60">
-              {amountSaving ? <Loader2 size={15} className="animate-spin" /> : null} Save
-            </button>
-            <button onClick={() => setEditingAmount(false)} className="bg-white border border-gray-200 text-gray-600 py-3 rounded-xl text-sm font-bold">Cancel</button>
+          <div className="space-y-2">
+            <input
+              type="number"
+              placeholder="New amount"
+              value={newAmount}
+              onChange={(e) => setNewAmount(e.target.value)}
+              className="w-full border-2 border-gray-100 bg-white rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#800000]/30"
+            />
+            <input
+              type="text"
+              placeholder="Reason for editing (required)"
+              value={editReason}
+              onChange={(e) => setEditReason(e.target.value)}
+              className="w-full border-2 border-gray-100 bg-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#800000]/30"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={saveAmount} disabled={amountSaving} className="bg-[#800000] text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 disabled:opacity-60">
+                {amountSaving ? <Loader2 size={15} className="animate-spin" /> : null} Save
+              </button>
+              <button onClick={() => { setEditingAmount(false); setEditReason(""); }} className="bg-white border border-gray-200 text-gray-600 py-3 rounded-xl text-sm font-bold">Cancel</button>
+            </div>
           </div>
         )}
 
