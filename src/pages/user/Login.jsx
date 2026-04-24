@@ -63,7 +63,13 @@ export default function Login() {
       localStorage.setItem("userToken", data.token);
       localStorage.setItem("userInfo", JSON.stringify(data.user));
       Swal.fire({ icon: "success", title: "Welcome!", timer: 800, showConfirmButton: false });
-      setTimeout(() => { window.location.href = "/user/bills"; }, 300);
+      setTimeout(() => {
+        if (data.multipleShops) {
+          window.location.href = "/user/shop-selection";
+        } else {
+          window.location.href = "/user/bills";
+        }
+      }, 300);
     } catch (err) {
       Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || "Something went wrong" });
     } finally {
