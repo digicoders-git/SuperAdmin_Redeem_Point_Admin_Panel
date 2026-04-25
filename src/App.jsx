@@ -41,6 +41,7 @@ import SubscriptionModal from "./components/SubscriptionModal";
 import { Download } from "lucide-react";
 import PullToRefresh from "./components/PullToRefresh";
 import IOSInstallPrompt from "./components/IOSInstallPrompt";
+import AdminProfileSetupModal from "./components/AdminProfileSetupModal";
 import api from "./api/axios";
 import { getFCMToken, onMessageListener } from "./firebase";
 
@@ -179,6 +180,8 @@ export default function App() {
           <Route path="/privacy-policy" element={<AdminPrivacyPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+
+        <AdminProfileSetupModal />
 
         {showAdminNav && <BottomNav />}
         {showUserNav && <UserBottomNav />}

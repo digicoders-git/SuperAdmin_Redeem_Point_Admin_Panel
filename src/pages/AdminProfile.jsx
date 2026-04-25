@@ -190,9 +190,18 @@ export default function AdminProfile() {
             </label>
           </div>
           <h1 className="text-white text-2xl font-black mb-1">{admin.name || "Partner Admin"}</h1>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-            <ShieldCheck className="text-amber-400" size={13} />
-            <span className="text-white/90 text-[11px] font-bold uppercase tracking-widest">{admin.adminId}</span>
+          <p className="text-white/70 text-xs font-bold uppercase tracking-[0.2em] mb-4">{admin.shopName || "Set Shop Name"}</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+              <ShieldCheck className="text-amber-400" size={13} />
+              <span className="text-white/90 text-[11px] font-bold uppercase tracking-widest">{admin.adminId}</span>
+            </div>
+            {admin.mobile && (
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                <Phone className="text-emerald-400" size={13} />
+                <span className="text-white/90 text-[11px] font-bold uppercase tracking-widest">{admin.mobile}</span>
+              </div>
+            )}
           </div>
           
         </div>

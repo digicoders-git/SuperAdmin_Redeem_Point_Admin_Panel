@@ -33,7 +33,8 @@ export default function AdminConfiguration() {
   
   const [profileForm, setProfileForm] = useState({
     name: adminInfo.name || "",
-    mobile: adminInfo.mobile || localStorage.getItem("adminMobile") || ""
+    mobile: adminInfo.mobile || localStorage.getItem("adminMobile") || "",
+    shopName: adminInfo.shopName || ""
   });
   
   const [pointConfig, setPointConfig] = useState({
@@ -226,6 +227,11 @@ export default function AdminConfiguration() {
                 </div>
                 <label className={labelCls}>Shop Display Name</label>
                 <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} className={inputCls} placeholder="Enter Business Name" required />
+                <label className={labelCls}>Shop Name</label>
+                <div className="relative">
+                  <input type="text" value={profileForm.shopName} onChange={(e) => setProfileForm({ ...profileForm, shopName: e.target.value })} className={inputCls} placeholder="e.g. My Awesome Shop" required />
+                  <Store size={18} className="absolute right-5 top-4 text-gray-300" />
+                </div>
                 <label className={labelCls}>Admin Mobile Number</label>
                 <div className="relative">
                   <input type="tel" value={profileForm.mobile} onChange={(e) => setProfileForm({ ...profileForm, mobile: e.target.value })} className={inputCls} placeholder="10 Digit Number" required />
