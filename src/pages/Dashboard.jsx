@@ -21,7 +21,7 @@ export default function Dashboard() {
   const [billsHistoryOpen, setBillsHistoryOpen] = useState(false);
   const [billsByDate, setBillsByDate] = useState([]);
   const qrRef = useRef(null);
-  const admin = JSON.parse(localStorage.getItem("adminInfo") || "{}");
+  const [admin, setAdmin] = useState(JSON.parse(localStorage.getItem("adminInfo") || "{}"));
 
   const registerUrl = admin?.shopId
     ? `${window.location.origin}/user/login?shopId=${admin.shopId}`
@@ -59,6 +59,9 @@ export default function Dashboard() {
       
       const today = new Date().toDateString();
       const billsToday = bills.filter(b => new Date(b.createdAt).toDateString() === today).length;
+      
+      // Update admin info from localStorage in case it changed
+      setAdmin(JSON.parse(localStorage.getItem("adminInfo") || "{}"));
 
       // Calculate bills by date
       const dateMap = {};
