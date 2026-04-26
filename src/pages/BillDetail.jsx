@@ -21,6 +21,13 @@ export default function BillDetail() {
   const [reason, setReason] = useState("");
   const [actionId, setActionId] = useState(null);
   const [fullScreen, setFullScreen] = useState(false);
+  const serverBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+  const getBillUrl = (path) => {
+    if (!path || path === "manual_adjustment") return null;
+    const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "/");
+    if (normalized.startsWith("http")) return normalized;
+    return serverBase + (normalized.startsWith("/") ? normalized : "/" + normalized);
+  };
 
   if (!bill) { navigate("/bills", { replace: true }); return null; }
 
@@ -191,19 +198,29 @@ export default function BillDetail() {
             {isPdf(bill.billImage) ? (
               <div className="flex flex-col items-center gap-4 bg-[#fff5f5] rounded-2xl p-6">
                 <FileText size={52} className="text-red-400" />
-                <a href={bill.billImage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#800000] text-white px-5 py-3 rounded-xl text-sm font-bold active:scale-95">
+                <a href={getBillUrl(bill.billImage)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#800000] text-white px-5 py-3 rounded-xl text-sm font-bold active:scale-95">
                   <ExternalLink size={16} /> Open PDF
                 </a>
+              </div>
+            ) : bill.billImage === "manual_adjustment" ? (
+              <div className="flex flex-col items-center gap-4 bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
+                <div className="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center">
+                  <Info size={40} className="text-emerald-500" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-emerald-800">Manual Adjustment</p>
+                  <p className="text-xs text-emerald-600">This entry was created by manual points addition.</p>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="relative group cursor-zoom-in" onClick={() => setFullScreen(true)}>
-                <img src={bill.billImage} alt="bill" className="w-full rounded-xl object-contain max-h-64" />
+                <img src={getBillUrl(bill.billImage)} alt="bill" className="w-full rounded-xl object-contain max-h-64" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-xl transition-all flex items-center justify-center">
                   <ZoomIn size={28} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                 </div>
               </div>
-                <a href={bill.billImage} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-[#fff5f5] border border-gray-200 text-gray-700 font-bold px-4 py-3 rounded-xl text-sm w-full active:scale-95" onClick={(e) => { e.preventDefault(); setFullScreen(true); }}>
+                <a href={getBillUrl(bill.billImage)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-[#fff5f5] border border-gray-200 text-gray-700 font-bold px-4 py-3 rounded-xl text-sm w-full active:scale-95" onClick={(e) => { e.preventDefault(); setFullScreen(true); }}>
                   <Image size={16} /> View Original
                 </a>
               </div>
@@ -221,7 +238,7 @@ export default function BillDetail() {
             </button>
           </div>
           <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
-            <img src={bill.billImage} alt="Full" className="max-w-full max-h-full object-contain rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
+            <img src={getBillUrl(bill.billImage)} alt="Full" className="max-w-full max-h-full object-contain rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
           </div>
           <p className="text-white/30 text-xs text-center pb-4 shrink-0">Tap outside to close</p>
         </div>

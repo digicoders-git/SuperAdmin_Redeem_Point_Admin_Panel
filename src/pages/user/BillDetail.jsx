@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Gift, Info } from "lucide-react";
 
 const statusStyle = {
   pending: "bg-amber-100 text-amber-600 border-amber-200",
@@ -24,9 +24,9 @@ export default function BillDetail() {
 
       <div className="p-5 space-y-4 pb-10">
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gradient-to-br from-[#0f4089] to-[#1a4187] rounded-2xl p-4 text-white">
-            <p className="text-xs text-white/70 uppercase tracking-wider mb-1">Amount</p>
-            <p className="text-3xl font-extrabold">₹{b.amount}</p>
+          <div className={`${b.billImage === "manual_adjustment" ? "bg-gradient-to-br from-emerald-600 to-emerald-700" : "bg-gradient-to-br from-[#0f4089] to-[#1a4187]"} rounded-2xl p-4 text-white`}>
+            <p className="text-xs text-white/70 uppercase tracking-wider mb-1">{b.billImage === "manual_adjustment" ? "Points" : "Amount"}</p>
+            <p className="text-3xl font-extrabold">{b.billImage === "manual_adjustment" ? `+${b.pointsEarned}` : `₹${b.amount}`}</p>
           </div>
           <div className="bg-white rounded-2xl p-4 border border-gray-100">
             <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Status</p>
@@ -48,7 +48,15 @@ export default function BillDetail() {
           ))}
         </div>
 
-        {b.rejectionReason && (
+        {b.billImage === "manual_adjustment" ? (
+           <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100 flex flex-col items-center text-center gap-3">
+              <Gift size={40} className="text-emerald-500" />
+              <div>
+                <p className="font-bold text-emerald-800">Manual Reward</p>
+                <p className="text-sm text-emerald-600">Points were added directly by the shop administrator.</p>
+              </div>
+           </div>
+        ) : b.rejectionReason && (
           <div className="bg-red-50 rounded-2xl p-4 border border-red-100">
             <p className="text-xs font-bold text-red-500 uppercase tracking-wider mb-1">Rejection Reason</p>
             <p className="text-sm text-red-600 font-medium">{b.rejectionReason}</p>

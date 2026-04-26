@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, User, Store, Phone } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function AdminRegister() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", shopName: "", mobile: "" });
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,13 @@ export default function AdminRegister() {
     }
     setLoading(true);
     try {
-      const { data } = await api.post("/admin/register", { email: form.email, password: form.password, name: form.name });
+      const { data } = await api.post("/admin/register", { 
+        email: form.email, 
+        password: form.password, 
+        name: form.name,
+        shopName: form.shopName,
+        mobile: form.mobile
+      });
       localStorage.setItem("adminToken", data.token);
       localStorage.setItem("adminInfo", JSON.stringify(data.admin));
       await Swal.fire({
@@ -56,6 +62,20 @@ export default function AdminRegister() {
               <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3.5 gap-3">
                 <User size={18} className="text-[#800000] shrink-0" />
                 <input type="text" placeholder="Enter your name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={inputCls} />
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Business / Shop Name</label>
+              <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3.5 gap-3">
+                <Store size={18} className="text-[#800000] shrink-0" />
+                <input type="text" placeholder="e.g. Reliance Fresh" value={form.shopName} onChange={(e) => setForm({ ...form, shopName: e.target.value })} required className={inputCls} />
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Mobile Number</label>
+              <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3.5 gap-3">
+                <Phone size={18} className="text-[#800000] shrink-0" />
+                <input type="tel" placeholder="10 Digit Number" value={form.mobile} onChange={(e) => setForm({ ...form, mobile: e.target.value })} required className={inputCls} />
               </div>
             </div>
             <div>

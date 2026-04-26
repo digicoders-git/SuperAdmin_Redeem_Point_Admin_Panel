@@ -17,7 +17,9 @@ import {
   Camera,
   ExternalLink,
   Phone,
-  Loader2
+  Loader2,
+  Trash2,
+  Coins
 } from "lucide-react";
 
 export default function AdminProfile() {
@@ -33,14 +35,19 @@ export default function AdminProfile() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [subRes, notiRes, settingsRes] = await Promise.all([
+        const [subRes, notiRes, settingsRes, adminRes] = await Promise.all([
           api.get("/subscriptions/my"),
           api.get("/notifications/admin"),
           api.get("/subscriptions/settings/public"),
+          api.get("/admin/profile").catch(() => ({ data: { admin } })),
         ]);
         setSubscription(subRes.data.subscription);
         setUnreadCount(notiRes.data.notifications?.filter(n => !n.isRead).length || 0);
         setSupportPhone(settingsRes.data.settings?.supportPhone || "");
+        if (adminRes.data.admin) {
+          setAdmin(adminRes.data.admin);
+          localStorage.setItem("adminInfo", JSON.stringify(adminRes.data.admin));
+        }
       } catch (error) {
         console.error("Error fetching admin profile data:", error);
       } finally {
@@ -77,29 +84,24 @@ export default function AdminProfile() {
     }
   };
 
-  const logout = async () => {
+  const deleteAccount = async () => {
     const res = await Swal.fire({
-      title: "Logout?",
-      text: "Are you sure you want to logout?",
-      icon: "warning",
+      title: "Delete Account?",
+      text: "This will permanently delete your shop and all data! This action cannot be undone.",
+      icon: "error",
       showCancelButton: true,
-      confirmButtonText: "Yes, Logout",
-      confirmButtonColor: "#800000",
+      confirmButtonText: "Yes, Delete Everything",
+      confirmButtonColor: "#ef4444",
       cancelButtonColor: "#d1d5db",
-      background: "#fff",
-      customClass: {
-        confirmButton: 'rounded-xl px-6 py-2',
-        cancelButton: 'rounded-xl px-6 py-2'
-      }
     });
     if (!res.isConfirmed) return;
     try {
-      await api.post("/admin/logout-all").catch(() => {});
+      await api.delete("/admin/profile");
       localStorage.clear();
       navigate("/", { replace: true });
-    } catch (e) {
-      localStorage.clear();
-      navigate("/", { replace: true });
+      Swal.fire("Deleted", "Your account has been deleted.", "success");
+    } catch (err) {
+      Swal.fire("Error", err.response?.data?.message || "Failed to delete account", "error");
     }
   };
 
@@ -118,7 +120,7 @@ export default function AdminProfile() {
         Swal.fire({
           icon: "success",
           title: "Link Copied!",
-          text: "Admin panel link copied to clipboard",
+          text: "Login link copied to clipboard. Share it with your team!",
           timer: 1500,
           showConfirmButton: false,
         });
@@ -315,12 +317,37 @@ export default function AdminProfile() {
         </div>
 
         {/* Logout Section */}
-        <button
-          onClick={logout}
-          className="w-full bg-red-50 text-red-600 py-5 rounded-[24px] font-black text-sm uppercase tracking-[0.15em] flex items-center justify-center gap-3 active:scale-[0.98] transition hover:bg-red-100/80 border border-red-100"
-        >
-          <LogOut size={20} /> Sign Out Account
-        </button>
+        <div className="space-y-3">
+          <button
+            onClick={() => {
+              const res = Swal.fire({
+                title: "Logout?",
+                text: "Are you sure you want to logout?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, Logout",
+                confirmButtonColor: "#800000",
+                cancelButtonColor: "#d1d5db",
+              }).then(r => {
+                if(r.isConfirmed) {
+                   api.post("/admin/logout-all").catch(() => {});
+                   localStorage.clear();
+                   navigate("/", { replace: true });
+                }
+              })
+            }}
+            className="w-full bg-white text-gray-600 py-4 rounded-[20px] font-bold text-sm flex items-center justify-center gap-3 border border-gray-100 shadow-sm active:scale-[0.98] transition"
+          >
+            <LogOut size={18} /> Sign Out Account
+          </button>
+          
+          <button
+            onClick={deleteAccount}
+            className="w-full bg-red-50 text-red-500 py-4 rounded-[20px] font-bold text-sm flex items-center justify-center gap-3 border border-red-100 active:scale-[0.98] transition"
+          >
+            <Trash2 size={18} /> Delete Account
+          </button>
+        </div>
         
         <p className="text-center text-gray-300 text-[10px] font-bold mt-8 uppercase tracking-[0.3em]">Redeem • v1.0.4</p>
       </div>

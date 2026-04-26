@@ -205,11 +205,11 @@ export default function Bills() {
             {bills.map((b) => (
               <button key={b._id} onClick={() => navigate(`/user/bills/${b._id}`, { state: { bill: b } })} className="w-full bg-white rounded-[16px] p-4 border border-gray-100 shadow-sm hover:shadow-md transition flex items-center justify-between active:scale-[0.99]">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center">
-                    <IndianRupee size={22} className="text-[#800000]" />
+                  <div className={`w-12 h-12 ${b.billImage === "manual_adjustment" ? "bg-emerald-50" : "bg-gray-50"} rounded-xl flex items-center justify-center`}>
+                    {b.billImage === "manual_adjustment" ? <Gift size={22} className="text-emerald-600" /> : <IndianRupee size={22} className="text-[#800000]" />}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-bold text-gray-800">₹{b.amount}</p>
+                    <p className="text-sm font-bold text-gray-800">{b.billImage === "manual_adjustment" ? "Points Awarded" : `₹${b.amount}`}</p>
                     <p className="text-[11px] text-gray-400">{new Date(b.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>

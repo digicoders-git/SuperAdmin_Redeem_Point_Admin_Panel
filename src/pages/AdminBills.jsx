@@ -19,6 +19,13 @@ export default function AdminBills() {
   const [loading, setLoading] = useState(false);
   const [actionId, setActionId] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const serverBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+  const getBillUrl = (path) => {
+    if (!path || path === "manual_adjustment") return null;
+    const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "/");
+    if (normalized.startsWith("http")) return normalized;
+    return serverBase + (normalized.startsWith("/") ? normalized : "/" + normalized);
+  };
 
   const load = () => {
     setLoading(true);
@@ -185,7 +192,13 @@ export default function AdminBills() {
                   <span className="text-gray-400 shrink-0">{new Date(b.date || b.createdAt).toLocaleDateString()}</span>
                 </div>
 
-                {b.billImage && !isPdf(b.billImage) && <img src={b.billImage} alt="bill" className="w-full h-32 object-cover rounded-xl mb-3 border border-gray-100" onError={(e) => { e.target.style.display = "none"; }} />}
+                {b.billImage && !isPdf(b.billImage) && b.billImage !== "manual_adjustment" && <img src={getBillUrl(b.billImage)} alt="bill" className="w-full h-32 object-cover rounded-xl mb-3 border border-gray-100" onError={(e) => { e.target.style.display = "none"; }} />}
+                {b.billImage === "manual_adjustment" && (
+                  <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-3 py-2.5 mb-3 border border-emerald-100">
+                    <Coins size={18} className="text-emerald-500 shrink-0" />
+                    <span className="text-xs font-semibold text-emerald-700">Manual Points Adjustment</span>
+                  </div>
+                )}
                 {b.billImage && isPdf(b.billImage) && (
                   <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5 mb-3 border border-gray-100">
                     <FileText size={18} className="text-red-400 shrink-0" />

@@ -18,6 +18,8 @@ export default function Dashboard() {
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [qrCopied, setQrCopied] = useState(false);
+  const [billsHistoryOpen, setBillsHistoryOpen] = useState(false);
+  const [billsByDate, setBillsByDate] = useState([]);
   const qrRef = useRef(null);
   const admin = JSON.parse(localStorage.getItem("adminInfo") || "{}");
 
@@ -55,6 +57,18 @@ export default function Dashboard() {
       const pointsRedeemed = redemptions.filter(r => r.status !== "rejected").reduce((s, r) => s + (r.pointsUsed || 0), 0);
       const pendingRedemptions = redemptions.filter(r => r.status === "pending").length;
       
+      const today = new Date().toDateString();
+      const billsToday = bills.filter(b => new Date(b.createdAt).toDateString() === today).length;
+
+      // Calculate bills by date
+      const dateMap = {};
+      bills.forEach(b => {
+        const d = new Date(b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        dateMap[d] = (dateMap[d] || 0) + 1;
+      });
+      const sortedDates = Object.entries(dateMap).sort((a,b) => new Date(b[0]) - new Date(a[0])).map(([date, count]) => ({ date, count }));
+      setBillsByDate(sortedDates);
+      
       setStats({ 
         users: users.length, 
         bills: bills.length, 
@@ -63,6 +77,7 @@ export default function Dashboard() {
         repeatedToday: r.data.repeatedCustomersToday || 0,
         pointsRedeemed,
         pendingRedemptions,
+        billsToday,
       });
 
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -97,7 +112,7 @@ export default function Dashboard() {
     { label: "Total Bills", value: stats.bills, icon: <Receipt size={22} />, bg: "bg-[#6b0000]/10", text: "text-[#6b0000]", border: "border-[#6b0000]/20", path: "/admin/bills" },
     { label: "Pending Bills", value: stats.pendingBills, icon: <Clock size={22} />, bg: "bg-amber-100", text: "text-amber-600", border: "border-amber-200", path: "/admin/bills" },
     { label: "Repeated Users", value: stats.repeatedToday, icon: <Users size={22} />, bg: "bg-emerald-100", text: "text-emerald-600", border: "border-emerald-200", path: "/admin/users" },
-    { label: "Approval Rate", value: stats.bills > 0 ? Math.round((stats.approvedBills / stats.bills) * 100) + "%" : "0%", icon: <Receipt size={22} />, bg: "bg-[#f97316]/10", text: "text-[#f97316]", border: "border-[#f97316]/20", path: "/admin/bills" },
+    { label: "Today's Bills", value: stats.billsToday, icon: <Receipt size={22} />, bg: "bg-[#f97316]/10", text: "text-[#f97316]", border: "border-[#f97316]/20", onClick: () => setBillsHistoryOpen(true) },
     { label: "Points Redeemed", value: stats.pointsRedeemed, icon: <Gift size={22} />, bg: "bg-purple-100", text: "text-purple-600", border: "border-purple-200", path: "/admin/redemptions" },
     { label: "Pending Redeem", value: stats.pendingRedemptions, icon: <Clock size={22} />, bg: "bg-rose-100", text: "text-rose-600", border: "border-rose-200", path: "/admin/redemptions" },
   ];
@@ -112,7 +127,7 @@ export default function Dashboard() {
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
         <div className="relative z-10 flex items-center justify-between">
           <div>
-            <h1 className="text-white font-bold text-2xl tracking-wide mb-1">Dashboard</h1>
+            <h1 className="text-white font-bold text-2xl tracking-wide mb-1">{admin.shopName || "Dashboard"}</h1>
             <p className="text-white/80 font-medium text-sm">Welcome, {admin.name || admin.adminId}</p>
           </div>
           <div className="flex gap-2">
@@ -138,7 +153,7 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               {cards.map((c) => (
-                <div key={c.label} onClick={() => navigate(c.path)} className={`rounded-3xl p-5 shadow-sm flex flex-col items-center justify-center text-center bg-white border ${c.border} cursor-pointer active:scale-[0.97] transition-transform`}>
+                <div key={c.label} onClick={c.onClick || (() => navigate(c.path))} className={`rounded-3xl p-5 shadow-sm flex flex-col items-center justify-center text-center bg-white border ${c.border} cursor-pointer active:scale-[0.97] transition-transform`}>
                   <div className={`mb-3 w-12 h-12 rounded-2xl flex items-center justify-center ${c.bg} ${c.text}`}>{c.icon}</div>
                   <div className="text-2xl font-extrabold text-gray-900 leading-none mb-1">{c.value}</div>
                   <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{c.label}</div>
@@ -196,7 +211,10 @@ export default function Dashboard() {
             <div className="bg-white rounded-3xl shadow-sm border border-[#ffe4e4] p-6 mb-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="bg-[#ffe4e4] text-[#800000] p-1.5 rounded-xl"><QrCode size={17} /></div>
-                <h3 className="font-bold text-gray-900 text-base">Your QR Code</h3>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-base">{admin.shopName || "Your QR Code"}</h3>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{admin.shopId}</p>
+                </div>
               </div>
               {admin?.shopId ? (
                 <>
@@ -234,9 +252,39 @@ export default function Dashboard() {
                 <button type="submit" disabled={saving} className={btnCls}>{saving && <Loader2 size={16} className="animate-spin" />} Save</button>
               </form>
             </div>
-          </>
-        )}
       </div>
+
+      {/* Date-wise Bills Modal */}
+      {billsHistoryOpen && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6 backdrop-blur-sm" onClick={() => setBillsHistoryOpen(false)}>
+          <div className="bg-white w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-[#800000] to-[#6b0000] p-6 text-white flex justify-between items-center">
+              <div>
+                <h3 className="font-bold text-lg">Bill History</h3>
+                <p className="text-white/60 text-xs">Total {stats.bills} uploads</p>
+              </div>
+              <button onClick={() => setBillsHistoryOpen(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
+                <LayoutDashboard size={20} />
+              </button>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-4 space-y-2">
+              {billsByDate.length === 0 ? (
+                <p className="text-center text-gray-400 py-8 text-sm">No bills yet</p>
+              ) : (
+                billsByDate.map((item) => (
+                  <div key={item.date} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <span className="text-sm font-bold text-gray-700">{item.date}</span>
+                    <span className="bg-[#ffe4e4] text-[#800000] px-3 py-1 rounded-full text-xs font-black">{item.count} Bills</span>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="p-4 border-t border-gray-100">
+              <button onClick={() => setBillsHistoryOpen(false)} className="w-full py-3.5 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm active:scale-95 transition">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
