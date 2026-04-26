@@ -12,7 +12,7 @@ const A = "#f97316";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ users: 0, bills: 0, pendingBills: 0, approvedBills: 0, repeatedToday: 0, pointsRedeemed: 0, pendingRedemptions: 0 });
+  const [stats, setStats] = useState({ users: 0, bills: 0, pendingBills: 0, approvedBills: 0, repeatedToday: 0, pointsRedeemed: 0, pendingRedemptions: 0, billsToday: 0 });
   const [chartData, setChartData] = useState({ users: [], repeated: [] });
   const [config, setConfig] = useState({ amountPerPoint: "" });
   const [pageLoading, setPageLoading] = useState(true);
