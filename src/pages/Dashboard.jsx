@@ -252,6 +252,8 @@ export default function Dashboard() {
                 <button type="submit" disabled={saving} className={btnCls}>{saving && <Loader2 size={16} className="animate-spin" />} Save</button>
               </form>
             </div>
+          </>
+        )}
       </div>
 
       {/* Date-wise Bills Modal */}
