@@ -35,9 +35,24 @@ export default function AdminLogin() {
     }
   };
 
+  useEffect(() => {
+    // Handle Google Redirect Response (for PWA/Mobile)
+    const hash = window.location.hash;
+    if (hash && hash.includes("access_token=")) {
+      const params = new URLSearchParams(hash.replace("#", "?"));
+      const access_token = params.get("access_token");
+      if (access_token) {
+        handleGoogleSuccess({ access_token });
+        // Clear hash to prevent re-processing
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    }
+  }, []);
+
   const googleLogin = useGoogleLogin({
     onSuccess: handleGoogleSuccess,
     onError: () => Swal.fire({ icon: "error", title: "Google Login Failed" }),
+    ux_mode: window.matchMedia('(display-mode: standalone)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'redirect' : 'popup',
   });
 
   const handleLogin = async (e) => {
