@@ -43,7 +43,7 @@ export default function BottomNav() {
     if (!res.isConfirmed) return;
     await api.post("/admin/logout-all").catch(() => {});
     localStorage.clear();
-    navigate("/admin/login", { replace: true });
+    navigate("/", { replace: true });
   };
 
   return (

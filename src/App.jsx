@@ -42,6 +42,7 @@ import { Download } from "lucide-react";
 import PullToRefresh from "./components/PullToRefresh";
 import IOSInstallPrompt from "./components/IOSInstallPrompt";
 import AdminProfileSetupModal from "./components/AdminProfileSetupModal";
+import UserProfileSetupModal from "./components/UserProfileSetupModal";
 import api from "./api/axios";
 import { getFCMToken, onMessageListener } from "./firebase";
 
@@ -182,6 +183,7 @@ export default function App() {
         </Routes>
 
         <AdminProfileSetupModal />
+        <UserProfileSetupModal />
 
         {showAdminNav && <BottomNav />}
         {showUserNav && <UserBottomNav />}

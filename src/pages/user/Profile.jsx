@@ -117,7 +117,7 @@ export default function Profile() {
     await api.post("/users/logout").catch(() => {});
     localStorage.clear();
     await Swal.fire({ icon: "success", title: "Logged Out!", text: "You have been logged out successfully.", timer: 1500, showConfirmButton: false });
-    navigate("/user/login", { replace: true });
+    navigate("/", { replace: true });
   };
 
   const shareApp = async () => {

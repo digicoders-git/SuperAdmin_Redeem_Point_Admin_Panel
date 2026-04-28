@@ -216,6 +216,7 @@ export default function Dashboard() {
                 <div className="bg-[#ffe4e4] text-[#800000] p-1.5 rounded-xl"><QrCode size={17} /></div>
                 <div>
                   <h3 className="font-bold text-gray-900 text-base">{admin.shopName || "Your QR Code"}</h3>
+                  <p className="text-[10px] text-[#800000] font-black uppercase tracking-widest">{admin.name}</p>
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{admin.shopId}</p>
                 </div>
               </div>

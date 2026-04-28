@@ -226,10 +226,10 @@ export default function AdminConfiguration() {
                   </div>
                 </div>
                 <label className={labelCls}>Shop Display Name</label>
-                <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} className={inputCls} placeholder="Enter Business Name" required />
-                <label className={labelCls}>Shop Name</label>
+                <input type="text" value={profileForm.shopName} onChange={(e) => setProfileForm({ ...profileForm, shopName: e.target.value })} className={inputCls} placeholder="e.g. Mohit Electronics" required />
+                <label className={labelCls}>Owner Name</label>
                 <div className="relative">
-                  <input type="text" value={profileForm.shopName} onChange={(e) => setProfileForm({ ...profileForm, shopName: e.target.value })} className={inputCls} placeholder="e.g. My Awesome Shop" required />
+                  <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} className={inputCls} placeholder="Enter Owner Name" required />
                   <Store size={18} className="absolute right-5 top-4 text-gray-300" />
                 </div>
                 <label className={labelCls}>Admin Mobile Number</label>
