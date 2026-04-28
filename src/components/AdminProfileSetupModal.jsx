@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import api from "../api/axios";
 import { Loader2, User, ShoppingBag, Phone } from "lucide-react";
 import Swal from "sweetalert2";
@@ -6,6 +7,7 @@ import Swal from "sweetalert2";
 export default function AdminProfileSetupModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
   const [formData, setFormData] = useState({
     name: "",
     shopName: "",
@@ -16,16 +18,20 @@ export default function AdminProfileSetupModal() {
     const adminInfoStr = localStorage.getItem("adminInfo");
     if (adminInfoStr) {
       const adminInfo = JSON.parse(adminInfoStr);
-      if (adminInfo.needsProfileSetup) {
+      if (adminInfo.needsProfileSetup && localStorage.getItem("adminToken")) {
         setIsOpen(true);
         setFormData({
           name: adminInfo.name || "",
           shopName: adminInfo.shopName || "",
           mobile: adminInfo.mobile || "",
         });
+      } else {
+        setIsOpen(false);
       }
+    } else {
+      setIsOpen(false);
     }
-  }, []);
+  }, [location.pathname]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

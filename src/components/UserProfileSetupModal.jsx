@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import api from "../api/axios";
 import { Loader2, User, Phone } from "lucide-react";
 import Swal from "sweetalert2";
@@ -6,6 +7,7 @@ import Swal from "sweetalert2";
 export default function UserProfileSetupModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
   const [formData, setFormData] = useState({
     name: "",
     mobile: "",
@@ -15,15 +17,19 @@ export default function UserProfileSetupModal() {
     const userInfoStr = localStorage.getItem("userInfo");
     if (userInfoStr) {
       const userInfo = JSON.parse(userInfoStr);
-      if (userInfo.needsProfileSetup) {
+      if (userInfo.needsProfileSetup && localStorage.getItem("userToken")) {
         setIsOpen(true);
         setFormData({
           name: userInfo.name || "",
           mobile: userInfo.mobile || "",
         });
+      } else {
+        setIsOpen(false);
       }
+    } else {
+      setIsOpen(false);
     }
-  }, []);
+  }, [location.pathname]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
