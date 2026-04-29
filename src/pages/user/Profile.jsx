@@ -22,6 +22,14 @@ const getTier = (points, tiers = null) => {
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 
+const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+const getFullUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
+  return `${serverBase}/${cleanPath}`;
+};
+
 export default function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -194,7 +202,7 @@ export default function Profile() {
           <div className="flex items-center gap-3">
             {adminData?.profilePhoto && (
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#800000] to-[#6b0000] overflow-hidden shadow-md border-2 border-white">
-                <img src={adminData.profilePhoto} alt="Admin" className="w-full h-full object-cover" />
+                <img src={getFullUrl(adminData.profilePhoto)} alt="Admin" className="w-full h-full object-cover" />
               </div>
             )}
             <h1 className="text-white font-bold text-xl tracking-wide">{profile?.shopName || "My Profile"}</h1>
@@ -211,7 +219,7 @@ export default function Profile() {
             <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#800000] to-[#6b0000] flex items-center justify-center text-white text-4xl font-extrabold shadow-lg shadow-[#800000]/20 border-4 border-white overflow-hidden">
               {(edit ? form.profilePhoto : profile.profilePhoto) ? (
                 <img
-                  src={edit ? form.profilePhoto : profile.profilePhoto}
+                  src={getFullUrl(edit ? form.profilePhoto : profile.profilePhoto)}
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />

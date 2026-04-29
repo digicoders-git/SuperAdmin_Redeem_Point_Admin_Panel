@@ -19,7 +19,8 @@ import {
   Phone,
   Loader2,
   Trash2,
-  Coins
+  Coins,
+  Download
 } from "lucide-react";
 
 export default function AdminProfile() {
@@ -139,6 +140,38 @@ export default function AdminProfile() {
       }
     }
   };
+  
+  const installApp = async () => {
+    const prompt = window.__installPrompt;
+    if (prompt) {
+      prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      if (outcome === 'accepted') {
+        window.__installPrompt = null;
+      }
+    } else {
+      Swal.fire({
+        title: "Install App",
+        html: `
+          <div class="text-left space-y-3 text-sm">
+            <p><b>For Android:</b> Tap the three dots (⋮) and select "Install app" or "Add to home screen".</p>
+            <p><b>For iPhone:</b> Tap the Share button (󰀿) and select "Add to Home Screen".</p>
+          </div>
+        `,
+        icon: "info",
+        confirmButtonText: "Got it",
+        confirmButtonColor: "#800000"
+      });
+    }
+  };
+
+  const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
+    return `${serverBase}/${cleanPath}`;
+  };
 
   const MenuAction = ({ icon: Icon, label, onClick, badge, color = "text-gray-700", bgColor = "bg-gray-50" }) => (
     <button
@@ -176,7 +209,7 @@ export default function AdminProfile() {
             <div className="w-28 h-28 rounded-[35%] bg-white/10 backdrop-blur-md border border-white/20 p-1 shadow-2xl transition-transform duration-500 group-hover:rotate-6 overflow-hidden">
               <div className="w-full h-full rounded-[35%] bg-gradient-to-br from-white to-gray-100 flex items-center justify-center shadow-inner overflow-hidden">
                 {admin.profilePhoto ? (
-                  <img src={ admin.profilePhoto} alt="Admin" className="w-full h-full object-cover" />
+                  <img src={getFullUrl(admin.profilePhoto)} alt="Admin" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-3xl font-black text-[#800000]">
                     {(admin.name || admin.adminId || "A")[0].toUpperCase()}
@@ -310,6 +343,13 @@ export default function AdminProfile() {
             onClick={() => navigate("/admin/terms")}
             color="text-blue-600"
             bgColor="bg-blue-50"
+          />
+          <MenuAction 
+            icon={Download} 
+            label="Download App" 
+            onClick={installApp} 
+            color="text-indigo-600"
+            bgColor="bg-indigo-50"
           />
           <MenuAction 
             icon={Share2} 

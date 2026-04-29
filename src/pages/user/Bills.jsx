@@ -17,7 +17,13 @@ export default function Bills() {
   const [rewards, setRewards] = useState([]);
   const [shopLogo, setShopLogo] = useState(null);
   const [hasShop, setHasShop] = useState(true);
-  const serverBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+  const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+  const getFullUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
+    return `${serverBase}/${cleanPath}`;
+  };
 
   const loadProfile = () =>
     api.get("/users/profile").then(({ data }) => {
@@ -162,7 +168,7 @@ export default function Bills() {
                 return (
                   <button key={r._id} onClick={() => navigate(`/user/rewards/${r._id}`, { state: { reward: r } })} className="bg-white rounded-[20px] p-4 min-w-[170px] border border-gray-100 shadow-sm flex flex-col items-center flex-shrink-0 snap-start active:scale-[0.98] transition-all">
                     <div className="w-36 h-36 bg-gray-50 flex items-center justify-center rounded-xl mb-3 overflow-hidden relative">
-                      {images.length > 0 ? <img src={images[0]} alt={r.rewardName} className="w-full h-full object-contain" onError={(e) => { e.target.style.display = "none"; }} /> : <Gift className="text-gray-300" size={60} />}
+                      {images.length > 0 ? <img src={getFullUrl(images[0])} alt={r.rewardName} className="w-full h-full object-contain" onError={(e) => { e.target.style.display = "none"; }} /> : <Gift className="text-gray-300" size={60} />}
                       {images.length > 1 && <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">{images.length} pics</span>}
                     </div>
                     <h4 className="text-[14px] font-bold text-gray-800 mb-1 w-full truncate text-center">{r.rewardName}</h4>

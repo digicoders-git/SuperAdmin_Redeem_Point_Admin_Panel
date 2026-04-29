@@ -22,12 +22,12 @@ export default function AdminBills() {
   const [editBill, setEditBill] = useState(null);
   const [editForm, setEditForm] = useState({ amount: "", pointsEarned: "", editReason: "" });
   const [updating, setUpdating] = useState(false);
-  const serverBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+  const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
   const getBillUrl = (path) => {
     if (!path || path === "manual_adjustment") return null;
-    const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "/");
-    if (normalized.startsWith("http")) return normalized;
-    return serverBase + (normalized.startsWith("/") ? normalized : "/" + normalized);
+    if (path.startsWith("http")) return path;
+    const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
+    return `${serverBase}/${cleanPath}`;
   };
 
   const load = () => {
