@@ -13,22 +13,37 @@ export default function UserProfileSetupModal() {
     mobile: "",
   });
 
-  useEffect(() => {
+  const checkSetupStatus = () => {
     const userInfoStr = localStorage.getItem("userInfo");
-    if (userInfoStr) {
+    const token = localStorage.getItem("userToken");
+    
+    if (userInfoStr && token) {
       const userInfo = JSON.parse(userInfoStr);
-      if (userInfo.needsProfileSetup && localStorage.getItem("userToken")) {
+      if (userInfo.needsProfileSetup) {
         setIsOpen(true);
         setFormData({
           name: userInfo.name || "",
           mobile: userInfo.mobile || "",
         });
-      } else {
-        setIsOpen(false);
+        return;
       }
-    } else {
-      setIsOpen(false);
     }
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    checkSetupStatus();
+    
+    // Listen for storage changes from other tabs/components
+    window.addEventListener("storage", checkSetupStatus);
+    
+    // Custom event for same-tab updates
+    window.addEventListener("userInfoUpdated", checkSetupStatus);
+    
+    return () => {
+      window.removeEventListener("storage", checkSetupStatus);
+      window.removeEventListener("userInfoUpdated", checkSetupStatus);
+    };
   }, [location.pathname]);
 
   const handleSubmit = async (e) => {
@@ -48,6 +63,9 @@ export default function UserProfileSetupModal() {
       });
 
       localStorage.setItem("userInfo", JSON.stringify(data.user));
+      // Dispatch custom event to notify this tab
+      window.dispatchEvent(new Event("userInfoUpdated"));
+      
       setIsOpen(false);
       
       Swal.fire({

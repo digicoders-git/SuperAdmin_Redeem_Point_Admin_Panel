@@ -14,23 +14,38 @@ export default function AdminProfileSetupModal() {
     mobile: "",
   });
 
-  useEffect(() => {
+  const checkSetupStatus = () => {
     const adminInfoStr = localStorage.getItem("adminInfo");
-    if (adminInfoStr) {
+    const token = localStorage.getItem("adminToken");
+    
+    if (adminInfoStr && token) {
       const adminInfo = JSON.parse(adminInfoStr);
-      if (adminInfo.needsProfileSetup && localStorage.getItem("adminToken")) {
+      if (adminInfo.needsProfileSetup) {
         setIsOpen(true);
         setFormData({
           name: adminInfo.name || "",
           shopName: adminInfo.shopName || "",
           mobile: adminInfo.mobile || "",
         });
-      } else {
-        setIsOpen(false);
+        return;
       }
-    } else {
-      setIsOpen(false);
     }
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    checkSetupStatus();
+    
+    // Listen for storage changes from other tabs/components
+    window.addEventListener("storage", checkSetupStatus);
+    
+    // Custom event for same-tab updates
+    window.addEventListener("adminInfoUpdated", checkSetupStatus);
+    
+    return () => {
+      window.removeEventListener("storage", checkSetupStatus);
+      window.removeEventListener("adminInfoUpdated", checkSetupStatus);
+    };
   }, [location.pathname]);
 
   const handleSubmit = async (e) => {
@@ -47,6 +62,9 @@ export default function AdminProfileSetupModal() {
       });
 
       localStorage.setItem("adminInfo", JSON.stringify(data.admin));
+      // Dispatch custom event to notify this tab
+      window.dispatchEvent(new Event("adminInfoUpdated"));
+      
       setIsOpen(false);
       
       Swal.fire({
