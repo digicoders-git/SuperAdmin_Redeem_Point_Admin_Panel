@@ -70,7 +70,7 @@ export default function Dashboard() {
     ctx.fillStyle = "#800000";
     ctx.font = "bold 16px Inter, sans-serif";
     ctx.fillText("Powered by Inaamify", 200, 480);
-    
+
     ctx.fillStyle = "#aaaaaa";
     ctx.font = "12px Inter, sans-serif";
     ctx.fillText("Har Bill Par Inaam!", 200, 500);
@@ -95,10 +95,10 @@ export default function Dashboard() {
       const redemptions = red.data.redemptions || [];
       const pointsRedeemed = redemptions.filter(r => r.status !== "rejected").reduce((s, r) => s + (r.pointsUsed || 0), 0);
       const pendingRedemptions = redemptions.filter(r => r.status === "pending").length;
-      
+
       const today = new Date().toDateString();
       const billsToday = bills.filter(b => new Date(b.createdAt).toDateString() === today).length;
-      
+
       // Update admin info from localStorage in case it changed
       setAdmin(JSON.parse(localStorage.getItem("adminInfo") || "{}"));
 
@@ -108,15 +108,15 @@ export default function Dashboard() {
         const d = new Date(b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
         dateMap[d] = (dateMap[d] || 0) + 1;
       });
-      const sortedDates = Object.entries(dateMap).sort((a,b) => new Date(b[0]) - new Date(a[0])).map(([date, count]) => ({ date, count }));
+      const sortedDates = Object.entries(dateMap).sort((a, b) => new Date(b[0]) - new Date(a[0])).map(([date, count]) => ({ date, count }));
       setBillsByDate(sortedDates);
-      
+
       const totalSale = bills.filter(b => b.status === "approved").reduce((s, b) => s + (b.amount || 0), 0);
       const totalPointsIssued = bills.filter(b => b.status === "approved").reduce((s, b) => s + (b.pointsEarned || 0), 0);
 
-      setStats({ 
-        users: users.length, 
-        bills: bills.length, 
+      setStats({
+        users: users.length,
+        bills: bills.length,
         pendingBills: bills.filter((x) => x.status === "pending").length,
         approvedBills: bills.filter((x) => x.status === "approved").length,
         repeatedToday: r.data.repeatedCustomersToday || 0,
@@ -129,22 +129,22 @@ export default function Dashboard() {
 
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const last7Days = [];
-      for (let i = 6; i >= 0; i--) { 
-        const d = new Date(); 
-        d.setDate(d.getDate() - i); 
-        last7Days.push({ date: d, name: days[d.getDay()] }); 
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        last7Days.push({ date: d, name: days[d.getDay()] });
       }
 
       setChartData({
-        users: last7Days.map(day => { 
-          const e = new Date(day.date); 
-          e.setHours(23,59,59,999); 
-          return { name: day.name, value: users.filter(u => new Date(u.createdAt) <= e).length }; 
+        users: last7Days.map(day => {
+          const e = new Date(day.date);
+          e.setHours(23, 59, 59, 999);
+          return { name: day.name, value: users.filter(u => new Date(u.createdAt) <= e).length };
         }),
         repeated: repeatedStats.map(s => ({ name: s.name, value: s.value })),
       });
       if (c.data.pointSetting) setConfig({ amountPerPoint: c.data.pointSetting.amountPerPoint });
-    }).catch(() => {}).finally(() => setPageLoading(false));
+    }).catch(() => { }).finally(() => setPageLoading(false));
   }, []);
 
   const saveConfig = async (e) => {
