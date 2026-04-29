@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { Users, Receipt, Clock, Gift, Settings, Loader2, LayoutDashboard, QrCode, Copy, Check, Download, Bell } from "lucide-react";
+import { Users, Receipt, Clock, Gift, Settings, Loader2, LayoutDashboard, QrCode, Copy, Check, Download, Bell, IndianRupee, Coins } from "lucide-react";
 import Swal from "sweetalert2";
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { QRCodeCanvas } from "qrcode.react";
