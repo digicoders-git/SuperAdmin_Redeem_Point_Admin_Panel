@@ -147,12 +147,6 @@ export default function Dashboard() {
     }).catch(() => { }).finally(() => setPageLoading(false));
   }, []);
 
-  const saveConfig = async (e) => {
-    e.preventDefault(); setSaving(true);
-    try { await api.post("/bills/admin/point-config", { amountPerPoint: Number(config.amountPerPoint) }); Swal.fire({ icon: "success", title: "Saved!", timer: 1500, showConfirmButton: false }); }
-    catch { Swal.fire({ icon: "error", title: "Failed", text: "Could not save config" }); }
-    finally { setSaving(false); }
-  };
 
   const cards = [
     { label: "Total Users", value: stats.users, icon: <Users size={22} />, bg: "bg-[#800000]/10", text: "text-[#800000]", border: "border-[#800000]/20", path: "/admin/users" },
@@ -294,11 +288,12 @@ export default function Dashboard() {
                 <div className="bg-[#ffe4e4] text-[#800000] p-1.5 rounded-xl"><Settings size={17} /></div>
                 Point Configuration
               </h3>
-              <p className="text-xs text-gray-400 mb-4 ml-9">Set how many ₹ = 1 Point</p>
-              <form onSubmit={saveConfig} className="flex flex-col gap-3">
-                <input type="number" placeholder="e.g. 100" value={config.amountPerPoint} onChange={(e) => setConfig({ amountPerPoint: e.target.value })} required className={inputCls} />
-                <button type="submit" disabled={saving} className={btnCls}>{saving && <Loader2 size={16} className="animate-spin" />} Save</button>
-              </form>
+              <div className="bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-5 py-4 ml-9">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500 text-sm font-bold uppercase tracking-wider">Current Rate</span>
+                  <span className="text-[#800000] font-black text-lg">₹{config.amountPerPoint || "—"} = 1 Point</span>
+                </div>
+              </div>
             </div>
           </>
         )}

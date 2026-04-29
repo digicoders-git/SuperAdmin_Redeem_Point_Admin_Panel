@@ -87,27 +87,6 @@ export default function AdminProfile() {
     }
   };
 
-  const deactivateAccount = async () => {
-    const res = await Swal.fire({
-      title: "Deactivate Account?",
-      text: "This will deactivate your shop and you will no longer be able to login. Contact SuperAdmin for reactivation.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Deactivate",
-      confirmButtonColor: "#ef4444",
-      cancelButtonColor: "#d1d5db",
-    });
-    if (!res.isConfirmed) return;
-    try {
-      await api.delete("/admin/profile");
-      localStorage.clear();
-      sessionStorage.clear();
-      navigate("/", { replace: true });
-      Swal.fire("Deactivated", "Your account has been deactivated.", "success");
-    } catch (err) {
-      Swal.fire("Error", err.response?.data?.message || "Failed to deactivate account", "error");
-    }
-  };
 
   const startEditing = () => {
     setEditForm({
@@ -378,13 +357,6 @@ export default function AdminProfile() {
             className="w-full bg-white text-gray-600 py-4 rounded-[20px] font-bold text-sm flex items-center justify-center gap-3 border border-gray-100 shadow-sm active:scale-[0.98] transition"
           >
             <LogOut size={18} /> Sign Out Account
-          </button>
-          
-          <button
-            onClick={deactivateAccount}
-            className="w-full bg-red-50 text-red-500 py-4 rounded-[20px] font-bold text-sm flex items-center justify-center gap-3 border border-red-100 active:scale-[0.98] transition"
-          >
-            <Trash2 size={18} /> Deactivate Account
           </button>
         </div>
         
