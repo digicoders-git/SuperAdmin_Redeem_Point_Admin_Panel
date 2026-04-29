@@ -19,6 +19,9 @@ export default function AdminBills() {
   const [loading, setLoading] = useState(false);
   const [actionId, setActionId] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [editBill, setEditBill] = useState(null);
+  const [editForm, setEditForm] = useState({ amount: "", pointsEarned: "", editReason: "" });
+  const [updating, setUpdating] = useState(false);
   const serverBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
   const getBillUrl = (path) => {
     if (!path || path === "manual_adjustment") return null;
@@ -76,6 +79,35 @@ export default function AdminBills() {
     setActionId(null);
     Swal.fire({ icon: "info", title: "Rejected", timer: 1200, showConfirmButton: false });
     load();
+  };
+
+  const handleEdit = (bill, e) => {
+    e.stopPropagation();
+    setEditBill(bill);
+    setEditForm({ 
+      amount: bill.amount, 
+      pointsEarned: bill.pointsEarned, 
+      editReason: bill.adminNote || "" 
+    });
+  };
+
+  const submitEdit = async (e) => {
+    e.preventDefault();
+    if (!editForm.editReason.trim()) {
+      Swal.fire({ icon: "error", title: "Reason Required", text: "Please provide a reason for editing the bill." });
+      return;
+    }
+    setUpdating(true);
+    try {
+      await api.patch(`/bills/admin/${editBill._id}/edit-amount`, editForm);
+      Swal.fire({ icon: "success", title: "Bill Updated!", timer: 1500, showConfirmButton: false });
+      setEditBill(null);
+      load();
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Update Failed", text: err.response?.data?.message || "Failed to update bill" });
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const statusStyle = {
@@ -227,11 +259,83 @@ export default function AdminBills() {
                 )}
 
                 {b.pointsEarned > 0 && <div className="inline-flex items-center gap-1 bg-orange-50 text-orange-500 font-bold px-3 py-1.5 rounded-lg text-xs mt-3">+{b.pointsEarned} points awarded</div>}
+                
+                <div className="flex justify-end mt-3 border-t border-gray-50 pt-3">
+                  <button 
+                    onClick={(e) => handleEdit(b, e)} 
+                    className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-100 transition"
+                  >
+                    Edit Details
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editBill && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center px-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="font-black text-gray-900 text-xl mb-1">Edit Bill Details</h3>
+            <p className="text-xs text-gray-400 font-medium mb-6">User: {editBill.userId?.name || "Customer"}</p>
+            
+            <form onSubmit={submitEdit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Bill Amount (₹)</label>
+                <input 
+                  type="number" 
+                  value={editForm.amount} 
+                  onChange={(e) => setEditForm({...editForm, amount: e.target.value})} 
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-blue-400 focus:outline-none transition" 
+                  required 
+                />
+              </div>
+              
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Points Earned</label>
+                <input 
+                  type="number" 
+                  value={editForm.pointsEarned} 
+                  onChange={(e) => setEditForm({...editForm, pointsEarned: e.target.value})} 
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-blue-400 focus:outline-none transition" 
+                  required 
+                />
+                <p className="text-[10px] text-gray-400 mt-1.5 ml-1 italic">* Updating points will adjust user's wallet automatically</p>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Reason for Edit</label>
+                <textarea 
+                  placeholder="e.g. Corrected amount, manual bonus..."
+                  value={editForm.editReason} 
+                  onChange={(e) => setEditForm({...editForm, editReason: e.target.value})} 
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-sm font-medium focus:border-blue-400 focus:outline-none transition h-24 resize-none" 
+                  required 
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setEditBill(null)} 
+                  className="bg-gray-100 text-gray-600 font-bold py-3.5 rounded-2xl text-sm transition active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={updating}
+                  className="bg-blue-600 text-white font-bold py-3.5 rounded-2xl text-sm shadow-lg shadow-blue-200 transition active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {updating ? <Loader2 size={18} className="animate-spin" /> : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <style dangerouslySetInnerHTML={{ __html: `.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}` }} />
     </div>

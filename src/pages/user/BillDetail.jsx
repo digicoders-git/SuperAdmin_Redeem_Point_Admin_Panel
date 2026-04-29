@@ -53,7 +53,7 @@ export default function BillDetail() {
               <Gift size={40} className="text-emerald-500" />
               <div>
                 <p className="font-bold text-emerald-800">Manual Reward</p>
-                <p className="text-sm text-emerald-600">Points were added directly by the shop administrator.</p>
+                <p className="text-sm text-emerald-600">{b.adminNote || "Points were added directly by the shop administrator."}</p>
               </div>
            </div>
         ) : b.rejectionReason && (

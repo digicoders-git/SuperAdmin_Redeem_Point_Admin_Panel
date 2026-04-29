@@ -31,6 +31,9 @@ export default function AdminProfile() {
   const [loading, setLoading] = useState(true);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [supportPhone, setSupportPhone] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", mobile: "", shopName: "" });
+  const [updatingProfile, setUpdatingProfile] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,13 +87,13 @@ export default function AdminProfile() {
     }
   };
 
-  const deleteAccount = async () => {
+  const deactivateAccount = async () => {
     const res = await Swal.fire({
-      title: "Delete Account?",
-      text: "This will permanently delete your shop and all data! This action cannot be undone.",
-      icon: "error",
+      title: "Deactivate Account?",
+      text: "This will deactivate your shop and you will no longer be able to login. Contact SuperAdmin for reactivation.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, Delete Everything",
+      confirmButtonText: "Yes, Deactivate",
       confirmButtonColor: "#ef4444",
       cancelButtonColor: "#d1d5db",
     });
@@ -98,10 +101,36 @@ export default function AdminProfile() {
     try {
       await api.delete("/admin/profile");
       localStorage.clear();
+      sessionStorage.clear();
       navigate("/", { replace: true });
-      Swal.fire("Deleted", "Your account has been deleted.", "success");
+      Swal.fire("Deactivated", "Your account has been deactivated.", "success");
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.message || "Failed to delete account", "error");
+      Swal.fire("Error", err.response?.data?.message || "Failed to deactivate account", "error");
+    }
+  };
+
+  const startEditing = () => {
+    setEditForm({
+      name: admin.name || "",
+      mobile: admin.mobile || "",
+      shopName: admin.shopName || ""
+    });
+    setIsEditing(true);
+  };
+
+  const saveProfile = async (e) => {
+    e.preventDefault();
+    setUpdatingProfile(true);
+    try {
+      const { data } = await api.put("/admin/profile", editForm);
+      setAdmin(data.admin);
+      localStorage.setItem("adminInfo", JSON.stringify(data.admin));
+      setIsEditing(false);
+      Swal.fire({ icon: "success", title: "Profile Updated!", timer: 1500, showConfirmButton: false });
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Update Failed", text: err.response?.data?.message || "Failed to update profile" });
+    } finally {
+      setUpdatingProfile(false);
     }
   };
 
@@ -242,6 +271,15 @@ export default function AdminProfile() {
           </button>
         </div>
 
+        <div className="bg-white rounded-[28px] p-2 shadow-xl shadow-gray-200/50 border border-gray-50 mb-8">
+           <button 
+             onClick={startEditing}
+             className="w-full flex items-center justify-center gap-2 py-4 text-[#800000] font-bold text-sm hover:bg-red-50 transition-colors rounded-[20px]"
+           >
+             <Settings size={18} /> Edit Profile Info
+           </button>
+        </div>
+
         {/* Subscription Banner */}
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-[28px] p-6 mb-8 relative overflow-hidden shadow-2xl shadow-gray-900/20 group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
@@ -332,6 +370,7 @@ export default function AdminProfile() {
                 if(r.isConfirmed) {
                    api.post("/admin/logout-all").catch(() => {});
                    localStorage.clear();
+                   sessionStorage.clear();
                    navigate("/", { replace: true });
                 }
               })
@@ -342,15 +381,72 @@ export default function AdminProfile() {
           </button>
           
           <button
-            onClick={deleteAccount}
+            onClick={deactivateAccount}
             className="w-full bg-red-50 text-red-500 py-4 rounded-[20px] font-bold text-sm flex items-center justify-center gap-3 border border-red-100 active:scale-[0.98] transition"
           >
-            <Trash2 size={18} /> Delete Account
+            <Trash2 size={18} /> Deactivate Account
           </button>
         </div>
         
         <p className="text-center text-gray-300 text-[10px] font-bold mt-8 uppercase tracking-[0.3em]">Redeem • v1.0.4</p>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditing && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center px-6 backdrop-blur-sm" onClick={() => setIsEditing(false)}>
+          <div className="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-black text-gray-900 text-xl">Edit Profile</h3>
+              <button onClick={() => setIsEditing(false)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <form onSubmit={saveProfile} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Admin Name</label>
+                <input 
+                  type="text" 
+                  value={editForm.name} 
+                  onChange={(e) => setEditForm({...editForm, name: e.target.value})} 
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-[#800000] focus:outline-none transition" 
+                  required 
+                />
+              </div>
+              
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Mobile Number</label>
+                <input 
+                  type="text" 
+                  value={editForm.mobile} 
+                  onChange={(e) => setEditForm({...editForm, mobile: e.target.value})} 
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-[#800000] focus:outline-none transition" 
+                  required 
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Shop Name</label>
+                <input 
+                  type="text" 
+                  value={editForm.shopName} 
+                  onChange={(e) => setEditForm({...editForm, shopName: e.target.value})} 
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-[#800000] focus:outline-none transition" 
+                  required 
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={updatingProfile}
+                className="w-full bg-[#800000] text-white font-bold py-4 rounded-2xl text-sm shadow-lg shadow-red-200 transition active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2 mt-2"
+              >
+                {updatingProfile ? <Loader2 size={18} className="animate-spin" /> : "Save Changes"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes bounce-slow {

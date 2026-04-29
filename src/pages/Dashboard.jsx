@@ -12,7 +12,7 @@ const A = "#f97316";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ users: 0, bills: 0, pendingBills: 0, approvedBills: 0, repeatedToday: 0, pointsRedeemed: 0, pendingRedemptions: 0, billsToday: 0 });
+  const [stats, setStats] = useState({ users: 0, bills: 0, pendingBills: 0, approvedBills: 0, repeatedToday: 0, pointsRedeemed: 0, pendingRedemptions: 0, billsToday: 0, totalSale: 0, totalPointsIssued: 0 });
   const [chartData, setChartData] = useState({ users: [], repeated: [] });
   const [config, setConfig] = useState({ amountPerPoint: "" });
   const [pageLoading, setPageLoading] = useState(true);
@@ -36,8 +36,47 @@ export default function Dashboard() {
   const downloadQR = () => {
     const canvas = qrRef.current?.querySelector("canvas");
     if (!canvas) return;
+
+    // Create a new canvas to add details
+    const newCanvas = document.createElement("canvas");
+    const ctx = newCanvas.getContext("2d");
+    newCanvas.width = 400;
+    newCanvas.height = 550;
+
+    // White background
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+
+    // Add Shop Name
+    ctx.fillStyle = "#1a0000";
+    ctx.font = "bold 24px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(admin.shopName || "Our Shop", 200, 50);
+
+    // Add Shop ID
+    ctx.fillStyle = "#800000";
+    ctx.font = "bold 14px Inter, sans-serif";
+    ctx.fillText(admin.shopId || "", 200, 75);
+
+    // Draw QR Code
+    ctx.drawImage(canvas, 50, 100, 300, 300);
+
+    // Add CTA
+    ctx.fillStyle = "#666666";
+    ctx.font = "medium 14px Inter, sans-serif";
+    ctx.fillText("SCAN TO REGISTER & EARN POINTS", 200, 430);
+
+    // Add Branding
+    ctx.fillStyle = "#800000";
+    ctx.font = "bold 16px Inter, sans-serif";
+    ctx.fillText("Powered by Inaamify", 200, 480);
+    
+    ctx.fillStyle = "#aaaaaa";
+    ctx.font = "12px Inter, sans-serif";
+    ctx.fillText("Har Bill Par Inaam!", 200, 500);
+
     const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
+    a.href = newCanvas.toDataURL("image/png");
     a.download = `${admin?.shopId || "shop"}-qr.png`;
     a.click();
   };
@@ -72,6 +111,9 @@ export default function Dashboard() {
       const sortedDates = Object.entries(dateMap).sort((a,b) => new Date(b[0]) - new Date(a[0])).map(([date, count]) => ({ date, count }));
       setBillsByDate(sortedDates);
       
+      const totalSale = bills.filter(b => b.status === "approved").reduce((s, b) => s + (b.amount || 0), 0);
+      const totalPointsIssued = bills.filter(b => b.status === "approved").reduce((s, b) => s + (b.pointsEarned || 0), 0);
+
       setStats({ 
         users: users.length, 
         bills: bills.length, 
@@ -81,6 +123,8 @@ export default function Dashboard() {
         pointsRedeemed,
         pendingRedemptions,
         billsToday,
+        totalSale,
+        totalPointsIssued
       });
 
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -112,10 +156,10 @@ export default function Dashboard() {
 
   const cards = [
     { label: "Total Users", value: stats.users, icon: <Users size={22} />, bg: "bg-[#800000]/10", text: "text-[#800000]", border: "border-[#800000]/20", path: "/admin/users" },
+    { label: "Total Sale", value: `₹${stats.totalSale}`, icon: <IndianRupee size={22} />, bg: "bg-blue-100", text: "text-blue-600", border: "border-blue-200", path: "/admin/bills" },
     { label: "Total Bills", value: stats.bills, icon: <Receipt size={22} />, bg: "bg-[#6b0000]/10", text: "text-[#6b0000]", border: "border-[#6b0000]/20", path: "/admin/bills" },
+    { label: "Points Given", value: stats.totalPointsIssued, icon: <Coins size={22} />, bg: "bg-emerald-100", text: "text-emerald-600", border: "border-emerald-200", path: "/admin/users" },
     { label: "Pending Bills", value: stats.pendingBills, icon: <Clock size={22} />, bg: "bg-amber-100", text: "text-amber-600", border: "border-amber-200", path: "/admin/bills" },
-    { label: "Repeated Users", value: stats.repeatedToday, icon: <Users size={22} />, bg: "bg-emerald-100", text: "text-emerald-600", border: "border-emerald-200", path: "/admin/users" },
-    { label: "Today's Bills", value: stats.billsToday, icon: <Receipt size={22} />, bg: "bg-[#f97316]/10", text: "text-[#f97316]", border: "border-[#f97316]/20", onClick: () => setBillsHistoryOpen(true) },
     { label: "Points Redeemed", value: stats.pointsRedeemed, icon: <Gift size={22} />, bg: "bg-purple-100", text: "text-purple-600", border: "border-purple-200", path: "/admin/redemptions" },
     { label: "Pending Redeem", value: stats.pendingRedemptions, icon: <Clock size={22} />, bg: "bg-rose-100", text: "text-rose-600", border: "border-rose-200", path: "/admin/redemptions" },
   ];

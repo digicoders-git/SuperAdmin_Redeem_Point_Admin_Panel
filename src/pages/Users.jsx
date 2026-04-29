@@ -88,16 +88,6 @@ export default function Users() {
     load();
   };
 
-  const remove = async (id) => {
-    setDropdownOpen(null);
-    const res = await Swal.fire({ title: "Delete User?", text: "This cannot be undone!", icon: "warning", showCancelButton: true, confirmButtonText: "Yes, Delete", confirmButtonColor: "#ef4444" });
-    if (!res.isConfirmed) return;
-    setActionId(id);
-    await api.delete(`/users/admin/${id}`);
-    setActionId(null);
-    Swal.fire({ icon: "success", title: "Deleted!", timer: 1200, showConfirmButton: false });
-    load();
-  };
 
   const statusTabs = [
     { id: "all", label: "All", count: users.length },
@@ -357,12 +347,6 @@ export default function Users() {
                               className="w-full text-left px-4 py-2.5 text-sm font-semibold text-amber-600 hover:bg-amber-50 transition flex items-center gap-2"
                             >
                               {u.isActive ? "Deactivate" : "Activate"}
-                            </button>
-                            <button
-                              onClick={() => remove(u._id)}
-                              className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition flex items-center gap-2"
-                            >
-                              Delete
                             </button>
                           </div>
                         </>
