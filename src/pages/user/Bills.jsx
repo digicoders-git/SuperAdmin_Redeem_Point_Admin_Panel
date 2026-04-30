@@ -22,10 +22,13 @@ export default function Bills() {
     if (!path) return "";
     if (path.startsWith("http")) return path;
 
-    // Handle legacy absolute filesystem paths (fix for existing broken paths)
+    // Normalize slashes
     let cleanPath = path.replace(/\\/g, "/");
-    if (cleanPath.includes("/uploads/")) {
-      cleanPath = cleanPath.split("/uploads/")[1];
+
+    // Aggressively find the 'uploads' part and take everything after it
+    const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
+    if (uploadsIndex !== -1) {
+      cleanPath = cleanPath.substring(uploadsIndex + 8); // Skip 'uploads/'
     } else {
       cleanPath = cleanPath.replace(/^\/+/, "");
     }
