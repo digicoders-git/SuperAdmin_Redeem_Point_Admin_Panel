@@ -27,7 +27,7 @@ const getFullUrl = (path) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
   const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
-  return `${serverBase}/${cleanPath}`;
+  return `${serverBase}/uploads/${cleanPath}`;
 };
 
 export default function Profile() {

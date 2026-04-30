@@ -22,7 +22,7 @@ export default function Bills() {
     if (!path) return "";
     if (path.startsWith("http")) return path;
     const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
-    return `${serverBase}/${cleanPath}`;
+    return `${serverBase}/uploads/${cleanPath}`;
   };
 
   const loadProfile = () =>

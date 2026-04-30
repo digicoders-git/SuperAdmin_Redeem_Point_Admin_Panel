@@ -170,7 +170,8 @@ export default function AdminProfile() {
     if (!path) return "";
     if (path.startsWith("http")) return path;
     const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
-    return `${serverBase}/${cleanPath}`;
+    // Prepend uploads directory for local files
+    return `${serverBase}/uploads/${cleanPath}`;
   };
 
   const MenuAction = ({ icon: Icon, label, onClick, badge, color = "text-gray-700", bgColor = "bg-gray-50" }) => (
