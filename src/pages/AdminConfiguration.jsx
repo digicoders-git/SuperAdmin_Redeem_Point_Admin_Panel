@@ -25,10 +25,21 @@ export default function AdminConfiguration() {
   const adminInfo = JSON.parse(localStorage.getItem("adminInfo") || "{}");
   const serverBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
   const getPhotoUrl = (path) => {
-    if (!path) return null;
-    const normalized = path.replace(/\\/g, "/").replace(/^\/+/, "/");
-    if (normalized.startsWith("http")) return normalized;
-    return serverBase + (normalized.startsWith("/") ? normalized : "/" + normalized);
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+
+    // Normalize slashes
+    let cleanPath = path.replace(/\\/g, "/");
+
+    // Aggressively find the 'uploads' part and take everything after it
+    const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
+    if (uploadsIndex !== -1) {
+      cleanPath = cleanPath.substring(uploadsIndex + 8); // Skip 'uploads/'
+    } else {
+      cleanPath = cleanPath.replace(/^\/+/, "");
+    }
+
+    return `${serverBase}/uploads/${cleanPath}`;
   };
   
   const [profileForm, setProfileForm] = useState({

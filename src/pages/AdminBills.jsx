@@ -26,8 +26,19 @@ export default function AdminBills() {
   const getBillUrl = (path) => {
     if (!path || path === "manual_adjustment") return null;
     if (path.startsWith("http")) return path;
-    const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
-    return `${serverBase}/${cleanPath}`;
+
+    // Normalize slashes
+    let cleanPath = path.replace(/\\/g, "/");
+
+    // Aggressively find the 'uploads' part and take everything after it
+    const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
+    if (uploadsIndex !== -1) {
+      cleanPath = cleanPath.substring(uploadsIndex + 8); // Skip 'uploads/'
+    } else {
+      cleanPath = cleanPath.replace(/^\/+/, "");
+    }
+
+    return `${serverBase}/uploads/${cleanPath}`;
   };
 
   const load = () => {
