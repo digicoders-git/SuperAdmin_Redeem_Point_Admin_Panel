@@ -19,6 +19,8 @@ import Notifications from "./pages/Notifications";
 import BillDetail from "./pages/BillDetail";
 import RedemptionDetail from "./pages/RedemptionDetail";
 import AdminConfiguration from "./pages/AdminConfiguration";
+import RoleSelection from "./pages/RoleSelection";
+import MerchantPortal from "./pages/MerchantPortal";
 
 // User Panel Pages
 import UserLogin from "./pages/user/Login";
@@ -132,13 +134,17 @@ export default function App() {
     if (outcome === "accepted") setInstallPrompt(null);
   };
 
+  const isLandingPage = location.pathname === "/";
+
   return (
     <PullToRefresh>
       <IOSInstallPrompt />
-      <div className="max-w-lg mx-auto min-h-screen bg-[#fff5f5] font-sans relative pb-safe">
+      <div className={`${isLandingPage ? "" : "max-w-lg mx-auto"} min-h-screen bg-[#fff5f5] font-sans relative pb-safe shadow-sm`}>
         <Routes>
           {/* Landing */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/selection" element={<RoleSelection />} />
+          <Route path="/merchant-portal" element={<MerchantPortal />} />
           
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
