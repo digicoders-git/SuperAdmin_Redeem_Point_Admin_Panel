@@ -166,6 +166,7 @@ export default function AdminProfile() {
   };
 
   const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+  // Version: 1.0.4 - Robust Image Fix
   const getFullUrl = (path) => {
     if (!path) return "";
     if (path.startsWith("http")) return path;
@@ -173,15 +174,19 @@ export default function AdminProfile() {
     // Normalize slashes
     let cleanPath = path.replace(/\\/g, "/");
     
-    // Aggressively find the 'uploads' part and take everything after it
-    // This handles cases like 'www/wwwroot/.../uploads/admin-photos/...'
+    // Aggressively find 'uploads/' or 'uploads\' (case-insensitive)
+    const uploadsMatch = cleanPath.toLowerCase().match(/\/uploads\//) || cleanPath.toLowerCase().match(/^uploads\//);
     const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
+    
     if (uploadsIndex !== -1) {
-      cleanPath = cleanPath.substring(uploadsIndex + 8); // Skip 'uploads/'
+      // Extract everything AFTER 'uploads/'
+      cleanPath = cleanPath.substring(uploadsIndex + 8);
     } else {
+      // Strip leading slashes
       cleanPath = cleanPath.replace(/^\/+/, "");
     }
     
+    // Ensure we only have one 'uploads/' in the final URL
     return `${serverBase}/uploads/${cleanPath}`;
   };
 
