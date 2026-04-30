@@ -26,7 +26,15 @@ const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_UR
 const getFullUrl = (path) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
-  const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
+
+  // Handle legacy absolute filesystem paths (fix for existing broken paths)
+  let cleanPath = path.replace(/\\/g, "/");
+  if (cleanPath.includes("/uploads/")) {
+    cleanPath = cleanPath.split("/uploads/")[1];
+  } else {
+    cleanPath = cleanPath.replace(/^\/+/, "");
+  }
+
   return `${serverBase}/uploads/${cleanPath}`;
 };
 
