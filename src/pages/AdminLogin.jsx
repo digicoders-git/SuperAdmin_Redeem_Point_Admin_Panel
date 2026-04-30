@@ -8,7 +8,6 @@ import Swal from "sweetalert2";
 export default function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -60,7 +59,7 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await api.post("/admin/login", { email, password, name });
+      const { data } = await api.post("/admin/login", { email, password });
       localStorage.setItem("adminToken", data.token);
       localStorage.setItem("adminInfo", JSON.stringify(data.admin));
       Swal.fire({ icon: "success", title: "Welcome!", timer: 800, showConfirmButton: false });
@@ -78,32 +77,23 @@ export default function AdminLogin() {
       <div className="fixed bottom-0 right-0 w-72 h-72 bg-[#800000]/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 pointer-events-none" />
 
       <div className="w-full max-w-sm relative z-10">
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-col items-center mb-8">
           <div className="w-20 h-20 rounded-3xl shadow-lg overflow-hidden mb-4">
             <img src="/logo.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-extrabold text-[#1a0000] tracking-tight">Inaamify Admin</h1>
-          <p className="text-sm text-gray-400 font-medium mt-1 text-center">Login with name, mobile & password</p>
+          <p className="text-sm text-gray-400 font-medium mt-1">Enter your email & password to continue</p>
         </div>
 
         <div className="bg-white rounded-[32px] shadow-xl shadow-[#800000]/10 border border-[#ffe4e4] p-6">
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Full Name</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Email / Admin ID</label>
               <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
                 <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
                   <Mail size={16} />
                 </div>
-                <input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
-              </div>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Mobile / Admin ID</label>
-              <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
-                  <Lock size={16} className="rotate-45" />
-                </div>
-                <input type="text" placeholder="Mobile number" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
+                <input type="text" placeholder="Enter email or ID" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
               </div>
             </div>
             <div>
