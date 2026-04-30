@@ -217,7 +217,12 @@ export default function AdminProfile() {
             <div className="w-28 h-28 rounded-[35%] bg-white/10 backdrop-blur-md border border-white/20 p-1 shadow-2xl transition-transform duration-500 group-hover:rotate-6 overflow-hidden">
               <div className="w-full h-full rounded-[35%] bg-gradient-to-br from-white to-gray-100 flex items-center justify-center shadow-inner overflow-hidden">
                 {admin.profilePhoto ? (
-                  <img src={getFullUrl(admin.profilePhoto)} alt="Admin" className="w-full h-full object-cover" />
+                  <img 
+                    src={getFullUrl(admin.profilePhoto)} 
+                    alt="Admin" 
+                    className="w-full h-full object-cover" 
+                    crossOrigin="anonymous"
+                  />
                 ) : (
                   <span className="text-3xl font-black text-[#800000]">
                     {(admin.name || admin.adminId || "A")[0].toUpperCase()}

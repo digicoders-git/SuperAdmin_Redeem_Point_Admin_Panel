@@ -210,7 +210,12 @@ export default function Profile() {
           <div className="flex items-center gap-3">
             {adminData?.profilePhoto && (
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#800000] to-[#6b0000] overflow-hidden shadow-md border-2 border-white">
-                <img src={getFullUrl(adminData.profilePhoto)} alt="Admin" className="w-full h-full object-cover" />
+                <img 
+                  src={getFullUrl(adminData.profilePhoto)} 
+                  alt="Admin" 
+                  className="w-full h-full object-cover" 
+                  crossOrigin="anonymous"
+                />
               </div>
             )}
             <h1 className="text-white font-bold text-xl tracking-wide">{profile?.shopName || "My Profile"}</h1>
