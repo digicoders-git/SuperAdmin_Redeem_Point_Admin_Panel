@@ -275,63 +275,41 @@ export default function Profile() {
                   <span className="text-xs font-black text-[#800000]">{profile.walletPoints || 0} pts</span>
                 </div>
                 
-                {/* Tier Progress Visualization */}
+                {/* Tier Progress Visualization - Only show current tier */}
                 <div className="space-y-3">
-                  {/* Bronze */}
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-gray-600">🥉 Bronze</span>
-                      <span className="text-xs font-bold text-gray-500">{tierConfig.bronze}+ pts</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-orange-500 h-2 rounded-full transition-all" 
-                        style={{ width: `${Math.min((profile.walletPoints / tierConfig.silver) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Silver */}
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-gray-600">🥈 Silver</span>
-                      <span className="text-xs font-bold text-gray-500">{tierConfig.silver}+ pts</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gray-400 h-2 rounded-full transition-all" 
-                        style={{ width: `${Math.min(((profile.walletPoints - tierConfig.silver) / (tierConfig.gold - tierConfig.silver)) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Gold */}
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-gray-600">🥇 Gold</span>
-                      <span className="text-xs font-bold text-gray-500">{tierConfig.gold}+ pts</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-yellow-500 h-2 rounded-full transition-all" 
-                        style={{ width: `${Math.min(((profile.walletPoints - tierConfig.gold) / (tierConfig.platinum - tierConfig.gold)) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Platinum */}
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-gray-600">💎 Platinum</span>
-                      <span className="text-xs font-bold text-gray-500">{tierConfig.platinum}+ pts</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-cyan-400 h-2 rounded-full transition-all" 
-                        style={{ width: `${Math.min(((profile.walletPoints - tierConfig.platinum) / tierConfig.platinum) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
+                  {(() => {
+                    const points = profile.walletPoints || 0;
+                    let currentTierData = null;
+
+                    if (points < tierConfig.silver) {
+                      currentTierData = { label: "Bronze", icon: "🥉", start: tierConfig.bronze, end: tierConfig.silver, color: "bg-orange-500" };
+                    } else if (points < tierConfig.gold) {
+                      currentTierData = { label: "Silver", icon: "🥈", start: tierConfig.silver, end: tierConfig.gold, color: "bg-gray-400" };
+                    } else if (points < tierConfig.platinum) {
+                      currentTierData = { label: "Gold", icon: "🥇", start: tierConfig.gold, end: tierConfig.platinum, color: "bg-yellow-500" };
+                    } else {
+                      currentTierData = { label: "Platinum", icon: "💎", start: tierConfig.platinum, end: tierConfig.platinum * 2, color: "bg-cyan-400" };
+                    }
+
+                    const progress = currentTierData.label === "Platinum" 
+                      ? 100 
+                      : Math.min(((points - currentTierData.start) / (currentTierData.end - currentTierData.start)) * 100, 100);
+
+                    return (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-bold text-gray-600">{currentTierData.icon} {currentTierData.label}</span>
+                          <span className="text-xs font-bold text-gray-500">{currentTierData.start}+ pts</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
+                          <div 
+                            className={`${currentTierData.color} h-full rounded-full transition-all duration-1000 ease-out`} 
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
               
