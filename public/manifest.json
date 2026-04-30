@@ -9,13 +9,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/WhatsApp Image 2026-04-23 at 17.37.03.jpeg",
+      "src": "/logo.jpeg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any maskable"
     },
     {
-      "src": "/WhatsApp Image 2026-04-23 at 17.37.03.jpeg",
+      "src": "/logo.jpeg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any maskable"

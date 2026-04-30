@@ -111,7 +111,7 @@ export default function Login() {
       <div className="w-full max-w-sm relative z-10">
         <div className="flex flex-col items-center mb-8">
           <div className="w-20 h-20 rounded-3xl shadow-lg overflow-hidden mb-4">
-            <img src="/WhatsApp Image 2026-04-23 at 17.37.03.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
+            <img src="/logo.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-extrabold text-[#1a0000] tracking-tight">{shopName || "Inaamify"}</h1>
           <p className="text-sm text-gray-400 font-medium mt-1">Enter your email & password to continue</p>

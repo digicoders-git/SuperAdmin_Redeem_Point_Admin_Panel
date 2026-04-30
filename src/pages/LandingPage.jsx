@@ -10,7 +10,7 @@ export default function LandingPage() {
         {/* Logo/Title */}
         <div className="text-center mb-12">
           <div className="w-24 h-24 rounded-3xl mx-auto mb-4 overflow-hidden shadow-lg border-2 border-white/20">
-            <img src="/WhatsApp Image 2026-04-23 at 17.37.03.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
+            <img src="/logo.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-white font-extrabold text-3xl mb-2">Inaamify</h1>
           <p className="text-white/70 text-sm font-medium">Choose how you want to continue</p>
