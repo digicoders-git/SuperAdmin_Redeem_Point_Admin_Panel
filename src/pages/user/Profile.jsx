@@ -130,8 +130,8 @@ export default function Profile() {
 
   const shareApp = async () => {
     const shareData = {
-      title: profile?.shopName || "Redeem App",
-      text: `Join ${profile?.shopName || "Redeem App"} to earn rewards and track your purchases!`,
+      title: profile?.shopName || "Inaamify App",
+      text: `Join ${profile?.shopName || "Inaamify App"} to earn rewards and track your purchases!`,
       url: window.location.origin + "/user/login" + (profile?.shopId ? `?shopId=${profile.shopId}` : ""),
     };
 

@@ -116,8 +116,8 @@ export default function AdminProfile() {
 
   const shareApp = async () => {
     const shareData = {
-      title: "Redeem Partner Panel",
-      text: `Join ${admin.name || "us"} at Redeem to manage your shop and reward customers!`,
+      title: "Inaamify Partner Panel",
+      text: `Join ${admin.shopName || admin.name || "us"} at Inaamify to manage your shop and reward customers!`,
       url: window.location.origin + "/admin/login",
     };
 

@@ -97,7 +97,9 @@ export default function Dashboard() {
       const pendingRedemptions = redemptions.filter(r => r.status === "pending").length;
 
       const today = new Date().toDateString();
-      const billsToday = bills.filter(b => new Date(b.createdAt).toDateString() === today).length;
+      const billsTodayList = bills.filter(b => new Date(b.createdAt).toDateString() === today);
+      const billsToday = billsTodayList.length;
+      const salesToday = billsTodayList.filter(b => b.status === "approved").reduce((s, b) => s + (b.amount || 0), 0);
 
       // Update admin info from localStorage in case it changed
       setAdmin(JSON.parse(localStorage.getItem("adminInfo") || "{}"));
@@ -123,6 +125,7 @@ export default function Dashboard() {
         pointsRedeemed,
         pendingRedemptions,
         billsToday,
+        salesToday,
         totalSale,
         totalPointsIssued
       });
@@ -149,12 +152,14 @@ export default function Dashboard() {
 
 
   const cards = [
-    { label: "Total Users", value: stats.users, icon: <Users size={22} />, bg: "bg-[#800000]/10", text: "text-[#800000]", border: "border-[#800000]/20", path: "/admin/users" },
+    { label: "Today's Sale", value: `₹${stats.salesToday}`, icon: <IndianRupee size={22} />, bg: "bg-orange-100", text: "text-orange-600", border: "border-orange-200", path: "/admin/bills" },
+    { label: "Today's Bills", value: stats.billsToday, icon: <Receipt size={22} />, bg: "bg-amber-100", text: "text-amber-600", border: "border-amber-200", path: "/admin/bills" },
     { label: "Total Sale", value: `₹${stats.totalSale}`, icon: <IndianRupee size={22} />, bg: "bg-blue-100", text: "text-blue-600", border: "border-blue-200", path: "/admin/bills" },
+    { label: "Total Users", value: stats.users, icon: <Users size={22} />, bg: "bg-[#800000]/10", text: "text-[#800000]", border: "border-[#800000]/20", path: "/admin/users" },
     { label: "Total Bills", value: stats.bills, icon: <Receipt size={22} />, bg: "bg-[#6b0000]/10", text: "text-[#6b0000]", border: "border-[#6b0000]/20", path: "/admin/bills" },
     { label: "Points Given", value: stats.totalPointsIssued, icon: <Coins size={22} />, bg: "bg-emerald-100", text: "text-emerald-600", border: "border-emerald-200", path: "/admin/users" },
-    { label: "Pending Bills", value: stats.pendingBills, icon: <Clock size={22} />, bg: "bg-amber-100", text: "text-amber-600", border: "border-amber-200", path: "/admin/bills" },
     { label: "Points Redeemed", value: stats.pointsRedeemed, icon: <Gift size={22} />, bg: "bg-purple-100", text: "text-purple-600", border: "border-purple-200", path: "/admin/redemptions" },
+    { label: "Pending Bills", value: stats.pendingBills, icon: <Clock size={22} />, bg: "bg-amber-100", text: "text-amber-600", border: "border-amber-200", path: "/admin/bills" },
     { label: "Pending Redeem", value: stats.pendingRedemptions, icon: <Clock size={22} />, bg: "bg-rose-100", text: "text-rose-600", border: "border-rose-200", path: "/admin/redemptions" },
   ];
 
