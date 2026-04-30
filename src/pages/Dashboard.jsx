@@ -197,12 +197,12 @@ export default function Dashboard() {
             {/* Subscription Widget */}
             <SubscriptionWidget />
 
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-6">
               {cards.map((c) => (
-                <div key={c.label} onClick={c.onClick || (() => navigate(c.path))} className={`rounded-[24px] p-4 shadow-sm flex flex-col items-center justify-center text-center bg-white border ${c.border} cursor-pointer active:scale-[0.97] transition-transform`}>
-                  <div className={`mb-2 w-10 h-10 rounded-xl flex items-center justify-center ${c.bg} ${c.text}`}>{c.icon}</div>
-                  <div className="text-xl font-extrabold text-gray-900 leading-none mb-1">{c.value}</div>
-                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{c.label}</div>
+                <div key={c.label} onClick={c.onClick || (() => navigate(c.path))} className={`rounded-3xl p-5 shadow-sm flex flex-col items-center justify-center text-center bg-white border ${c.border} cursor-pointer active:scale-[0.97] transition-transform`}>
+                  <div className={`mb-3 w-12 h-12 rounded-2xl flex items-center justify-center ${c.bg} ${c.text}`}>{c.icon}</div>
+                  <div className="text-2xl font-extrabold text-gray-900 leading-none mb-1">{c.value}</div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{c.label}</div>
                 </div>
               ))}
             </div>
