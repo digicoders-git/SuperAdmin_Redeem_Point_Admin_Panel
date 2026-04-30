@@ -194,8 +194,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Subscription Widget */}
-            <SubscriptionWidget />
+            {/* Subscription Info removed from here */}
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               {cards.map((c) => (

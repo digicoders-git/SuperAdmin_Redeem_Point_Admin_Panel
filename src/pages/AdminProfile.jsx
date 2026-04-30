@@ -233,7 +233,15 @@ export default function AdminProfile() {
             </label>
           </div>
           <h1 className="text-white text-2xl font-black mb-1">{admin.name || "Partner Admin"}</h1>
-          <p className="text-white/70 text-xs font-bold uppercase tracking-[0.2em] mb-4">{admin.shopName || "Set Shop Name"}</p>
+          <p className="text-white/70 text-xs font-bold uppercase tracking-[0.2em] mb-3">{admin.shopName || "Set Shop Name"}</p>
+          
+          {subscription && (
+            <div className="mb-4 animate-in fade-in slide-in-from-top-2 duration-500">
+              <span className="bg-amber-400 text-[#800000] text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-xl border border-white/20">
+                {subscription.planId?.name || "Free Trial"} Plan
+              </span>
+            </div>
+          )}
           <div className="flex flex-wrap justify-center gap-2">
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
               <ShieldCheck className="text-amber-400" size={13} />
