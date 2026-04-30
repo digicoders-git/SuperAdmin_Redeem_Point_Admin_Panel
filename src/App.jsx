@@ -21,6 +21,7 @@ import RedemptionDetail from "./pages/RedemptionDetail";
 import AdminConfiguration from "./pages/AdminConfiguration";
 import RoleSelection from "./pages/RoleSelection";
 import MerchantPortal from "./pages/MerchantPortal";
+import PublicTerms from "./pages/PublicTerms";
 
 // User Panel Pages
 import UserLogin from "./pages/user/Login";
@@ -183,7 +184,7 @@ export default function App() {
           <Route path="/profile" element={<Navigate to="/user/profile" replace />} />
           <Route path="/bills" element={<Navigate to="/user/bills" replace />} />
           <Route path="/rewards" element={<Navigate to="/user/rewards" replace />} />
-          <Route path="/terms" element={<Navigate to="/user/terms" replace />} />
+          <Route path="/terms" element={<PublicTerms />} />
           <Route path="/privacy-policy" element={<AdminPrivacyPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

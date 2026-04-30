@@ -131,7 +131,7 @@ export default function LandingPage() {
         <div className="features-inner">
           <div className="section-tag">● Features</div>
           <h2 className="section-title">Built for the <span className="gold">Smart Shopper</span></h2>
-          
+
           <div className="features-grid">
             <div className="feat-card">
               <div className="feat-icon">⚡</div>
@@ -162,7 +162,7 @@ export default function LandingPage() {
         <div className="tiers-inner">
           <div className="section-tag">● Loyalty Tiers</div>
           <h2 className="section-title">Unlock <span className="gold">Premium Benefits</span></h2>
-          
+
           <div className="tiers-grid">
             <div className="tier-card">
               <div className="tier-badge bronze">Bronze</div>
@@ -263,7 +263,6 @@ export default function LandingPage() {
         <div className="footer-links">
           <a href="#" onClick={(e) => { e.preventDefault(); navigate("/privacy-policy"); }}>Privacy Policy</a>
           <a href="#" onClick={(e) => { e.preventDefault(); navigate("/terms"); }}>Terms of Service</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); navigate("/merchant-portal"); }}>Merchant Portal</a>
         </div>
       </footer>
     </div>
