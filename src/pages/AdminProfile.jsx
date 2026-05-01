@@ -169,7 +169,10 @@ export default function AdminProfile() {
   // Version: 1.0.4 - Robust Image Fix
   const getFullUrl = (path) => {
     if (!path) return "";
-    if (path.startsWith("http")) return path;
+    if (path.startsWith("http")) {
+      // Fix old URLs missing /uploads/ prefix
+      return path.replace(/\/admin-photos\//, "/uploads/admin-photos/");
+    }
     
     // Normalize slashes
     let cleanPath = path.replace(/\\/g, "/");
