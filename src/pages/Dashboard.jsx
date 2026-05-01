@@ -153,7 +153,7 @@ export default function Dashboard() {
 
   const cards = [
     { label: "Today's Sale", value: `₹${stats.salesToday}`, icon: <IndianRupee size={22} />, bg: "bg-orange-100", text: "text-orange-600", border: "border-orange-200", path: "/admin/bills" },
-    { label: "Today's Bills", value: stats.billsToday, icon: <Receipt size={22} />, bg: "bg-amber-100", text: "text-amber-600", border: "border-amber-200", path: "/admin/bills" },
+    { label: "Today's Bills", value: stats.billsToday, icon: <IndianRupee size={22} />, bg: "bg-amber-100", text: "text-amber-600", border: "border-amber-200", path: "/admin/bills" },
     { label: "Total Sale", value: `₹${stats.totalSale}`, icon: <IndianRupee size={22} />, bg: "bg-blue-100", text: "text-blue-600", border: "border-blue-200", path: "/admin/bills" },
     { label: "Total Users", value: stats.users, icon: <Users size={22} />, bg: "bg-[#800000]/10", text: "text-[#800000]", border: "border-[#800000]/20", path: "/admin/users" },
     { label: "Total Bills", value: stats.bills, icon: <Receipt size={22} />, bg: "bg-[#6b0000]/10", text: "text-[#6b0000]", border: "border-[#6b0000]/20", path: "/admin/bills" },

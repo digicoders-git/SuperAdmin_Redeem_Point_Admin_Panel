@@ -1,8 +1,35 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [installPrompt, setInstallPrompt] = useState(() => window.__installPrompt || null);
+  const [isIOS, setIsIOS] = useState(false);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
+
+  useEffect(() => {
+    setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream);
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); window.__installPrompt = e; };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async (e) => {
+    e.preventDefault();
+    if (isIOS) {
+      setShowIOSGuide(true);
+      return;
+    }
+    if (installPrompt) {
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === "accepted") { setInstallPrompt(null); window.__installPrompt = null; }
+    } else {
+      // Already installed or not supported — go to user login
+      navigate("/user/login");
+    }
+  };
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
@@ -230,7 +257,7 @@ export default function LandingPage() {
             <h2>Ready to start <span>earning?</span></h2>
             <p>Join thousands of users who are turning their shopping bills into real rewards today.</p>
             <div className="store-btns">
-              <a href="#" className="store-btn" onClick={(e) => { e.preventDefault(); navigate("/user/register"); }}>
+              <a href="#" className="store-btn" onClick={handleInstall}>
                 <div className="store-btn-icon">📱</div>
                 <div className="store-btn-text">
                   <small>Download for</small>
@@ -248,6 +275,30 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* iOS Install Guide Modal */}
+      {showIOSGuide && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setShowIOSGuide(false)}>
+          <div style={{ background: '#fff', borderRadius: '24px 24px 0 0', padding: '2rem', width: '100%', maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1rem', color: '#1a0000' }}>Install on iPhone</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>1️⃣</span>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#444' }}>Tap the <strong>Share</strong> button at the bottom of Safari</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>2️⃣</span>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#444' }}>Scroll down and tap <strong>"Add to Home Screen"</strong></p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>3️⃣</span>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#444' }}>Tap <strong>"Add"</strong> in the top right corner</p>
+              </div>
+            </div>
+            <button onClick={() => setShowIOSGuide(false)} style={{ marginTop: '1.5rem', width: '100%', background: '#800000', color: '#fff', border: 'none', borderRadius: '14px', padding: '0.9rem', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>Got it!</button>
+          </div>
+        </div>
+      )}
 
       {/* ── FOOTER ── */}
       <footer className="landing-footer">
