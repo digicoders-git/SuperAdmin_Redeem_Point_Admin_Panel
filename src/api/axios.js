@@ -9,9 +9,11 @@ const serverBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "").repl
 
 const toAbsoluteUrl = (url) => {
   if (!url) return url;
-  const normalized = url.replace(/\\/g, "/").replace(/^\/+/, "/");
+  const normalized = url.replace(/\\/g, "/");
   if (normalized.startsWith("http")) return normalized;
-  return serverBaseUrl + (normalized.startsWith("/") ? normalized : "/" + normalized);
+  // Remove /uploads prefix if present
+  const cleaned = normalized.replace(/^\/+/, "").replace(/^uploads\//, "");
+  return serverBaseUrl + "/" + cleaned;
 };
 
 // Attach token to every request
