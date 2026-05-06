@@ -1,320 +1,218 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [installPrompt, setInstallPrompt] = useState(() => window.__installPrompt || null);
-  const [isIOS, setIsIOS] = useState(false);
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
 
   useEffect(() => {
-    setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream);
-    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); window.__installPrompt = e; };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    const reveals = document.querySelectorAll(".reveal");
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("visible"); }),
+      { threshold: 0.1 }
+    );
+    reveals.forEach((r) => observer.observe(r));
+    return () => observer.disconnect();
   }, []);
 
-  const handleInstall = async (e) => {
-    e.preventDefault();
-    if (isIOS) {
-      setShowIOSGuide(true);
-      return;
-    }
-    if (installPrompt) {
-      installPrompt.prompt();
-      const { outcome } = await installPrompt.userChoice;
-      if (outcome === "accepted") { setInstallPrompt(null); window.__installPrompt = null; }
-    } else {
-      // Already installed or not supported — go to user login
-      navigate("/user/login");
-    }
-  };
-
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+  const scrollTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <div className="landing-page-container">
-      {/* ── NAV ── */}
-      <nav className="landing-nav">
-        <a className="nav-logo" href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-          <div className="nav-icon" style={{ padding: '0', overflow: 'hidden' }}>
-            <img src="/logo.jpeg" alt="L" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </div>
-          <span className="nav-brand">Inaam<span>ify</span></span>
+    <div className="lp">
+      {/* NAV */}
+      <nav className="lp-nav">
+        <a className="lp-nav-logo" href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+          <span className="lp-nav-icon">🎁</span>
+          <span>Inaam<span>ify</span></span>
         </a>
-        <ul className="nav-links">
-          <li><a href="#how" onClick={(e) => { e.preventDefault(); scrollToSection('how'); }}>How it Works</a></li>
-          <li><a href="#features" onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>Features</a></li>
-          <li><a href="#tiers" onClick={(e) => { e.preventDefault(); scrollToSection('tiers'); }}>Tiers</a></li>
-          <li><a href="#" className="nav-cta" onClick={(e) => { e.preventDefault(); navigate("/selection"); }}>Sign In</a></li>
+        <ul>
+          <li><a href="#how" onClick={(e) => { e.preventDefault(); scrollTo("how"); }}>How It Works</a></li>
+          <li><a href="#benefits" onClick={(e) => { e.preventDefault(); scrollTo("benefits"); }}>Benefits</a></li>
+          <li><a href="#who" onClick={(e) => { e.preventDefault(); scrollTo("who"); }}>For Who</a></li>
+          <li><a href="#" className="lp-nav-cta" onClick={(e) => { e.preventDefault(); navigate("/selection"); }}>Get Started</a></li>
         </ul>
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="hero">
-        <div className="hero-eyebrow">
-          <span className="eyebrow-dot"></span>
-          India's Smartest Loyalty Rewards App
-        </div>
-
-        <h1>
-          Shop. Upload. <span className="gold">Earn Inaam.</span>
-        </h1>
-
-        <p className="hero-sub">
-          Upload your shopping bills, collect reward points automatically, unlock exclusive offers and cashback — every purchase pays back.
+      {/* HERO */}
+      <section className="lp-hero">
+        <div className="lp-hero-blob" />
+        <div className="lp-hero-blob" />
+        <div className="lp-hero-badge">🇮🇳 Made for India's Local Shops</div>
+        <h1>Har Kharidari<br />Par <span>Inaam</span></h1>
+        <p className="lp-hero-tagline">
+          Turn every customer into a <strong>loyal customer</strong> —<br />
+          with rewards on every purchase at your shop.
         </p>
-
-        <div className="hero-btns">
-          <a href="#" className="btn-primary" onClick={(e) => { e.preventDefault(); navigate("/selection"); }}>
-            ▶ Get Started Free
-          </a>
-          <a href="#how" className="btn-outline" onClick={(e) => { e.preventDefault(); scrollToSection('how'); }}>
-            How it Works
-          </a>
-          <a href="#" className="btn-outline" onClick={(e) => { e.preventDefault(); navigate("/selection"); }}>
-            Role Selection
-          </a>
+        <div className="lp-hero-btns">
+          <a href="#" className="lp-btn-primary" onClick={(e) => { e.preventDefault(); navigate("/selection"); }}>🚀 Start Free Today</a>
+          <a href="#how" className="lp-btn-outline" onClick={(e) => { e.preventDefault(); scrollTo("how"); }}>See How It Works ↓</a>
         </div>
+      </section>
 
-        <div className="hero-stats">
-          <div className="hstat">
-            <span className="hstat-num">750+</span>
-            <span className="hstat-label">Active Members</span>
-          </div>
-          <div className="hstat">
-            <span className="hstat-num">50+</span>
-            <span className="hstat-label">Live Offers</span>
-          </div>
-          <div className="hstat">
-            <span className="hstat-num">4</span>
-            <span className="hstat-label">Reward Tiers</span>
-          </div>
-          <div className="hstat">
-            <span className="hstat-num">₹0</span>
-            <span className="hstat-label">To Join</span>
-          </div>
-        </div>
+      {/* STATS BAR */}
+      <div className="lp-stats-bar">
+        <div className="lp-stat"><div className="lp-stat-num">60M+</div><div className="lp-stat-label">Local Shops in India</div></div>
+        <div className="lp-stat"><div className="lp-stat-num">0%</div><div className="lp-stat-label">Use Loyalty Systems</div></div>
+        <div className="lp-stat"><div className="lp-stat-num">3x</div><div className="lp-stat-label">Cost to Acquire vs Retain</div></div>
+        <div className="lp-stat"><div className="lp-stat-num">₹50L Cr</div><div className="lp-stat-label">Unorganized Retail Market</div></div>
+      </div>
 
-        <div className="hero-mockup">
-          <div className="mockup-glow"></div>
-          <div className="mockup-screen">
-            <div className="mock-card">
-              <div className="mock-label">Wallet Balance</div>
-              <div className="mock-val">₹840</div>
-              <div className="mock-sub">+₹120 this week</div>
-              <div className="mock-bar"><div className="mock-bar-fill" style={{ width: '68%' }}></div></div>
+      {/* PROBLEM / SOLUTION */}
+      <section className="lp-section lp-ps-section">
+        <div className="lp-container">
+          <div className="lp-section-label">The Challenge</div>
+          <h2 className="lp-section-title">Why Local Shops Struggle</h2>
+          <p className="lp-section-sub">Indian shop owners face a tough reality — and Inaamify is the answer.</p>
+          <div className="lp-ps-grid reveal">
+            <div className="lp-ps-card lp-problem">
+              <div className="lp-card-header">❌ The Problem</div>
+              <div className="lp-ps-item"><span>😞</span><p>Customers always choose the cheapest option available</p></div>
+              <div className="lp-ps-item"><span>🏃</span><p>They buy from the nearest shop, not the most loyal one</p></div>
+              <div className="lp-ps-item"><span>💔</span><p>No reason to come back to the same shop repeatedly</p></div>
+              <div className="lp-ps-item"><span>📉</span><p>Heavy price competition squeezes profits to zero</p></div>
+              <div className="lp-ps-item"><span>🛒</span><p>Big e-commerce platforms stealing local customers</p></div>
             </div>
-            <div className="mock-card">
-              <div className="mock-label">Total Points</div>
-              <div className="mock-val">18,450</div>
-              <div className="mock-sub">Silver tier · 1,550 to go</div>
-              <div className="mock-bar"><div className="mock-bar-fill" style={{ width: '92%' }}></div></div>
+            <div className="lp-ps-card lp-solution">
+              <div className="lp-card-header">✅ The Solution</div>
+              <div className="lp-ps-item"><span>🎁</span><p>Reward customers on every purchase — so they return to YOU</p></div>
+              <div className="lp-ps-item"><span>⭐</span><p>Create emotional loyalty beyond just price comparisons</p></div>
+              <div className="lp-ps-item"><span>📱</span><p>Simple mobile-first system — no technical knowledge needed</p></div>
+              <div className="lp-ps-item"><span>🏆</span><p>Stand out as the ONLY shop in your area with rewards</p></div>
+              <div className="lp-ps-item"><span>📊</span><p>Track customer behavior with a powerful seller dashboard</p></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section className="landing-section how" id="how">
-        <div className="how-inner">
-          <div className="section-tag">● Simplicity First</div>
-          <h2 className="section-title">Rewards in 3 Simple Steps</h2>
-          <p className="section-sub" style={{ margin: '0.75rem auto 0' }}>We've automated the boring stuff so you can focus on earning.</p>
-
-          <div className="steps">
-            <div className="step">
-              <div className="step-num">01</div>
-              <h3 className="step-title">Shop Anywhere</h3>
-              <p className="step-desc">Shop at your favorite partner stores as you normally do.</p>
-            </div>
-            <div className="step">
-              <div className="step-num">02</div>
-              <h3 className="step-title">Snap & Upload</h3>
-              <p className="step-desc">Take a quick photo of your physical bill through the app.</p>
-            </div>
-            <div className="step">
-              <div className="step-num">03</div>
-              <h3 className="step-title">Earn Points</h3>
-              <p className="step-desc">Points are added to your wallet once the bill is verified.</p>
-            </div>
-            <div className="step">
-              <div className="step-num">04</div>
-              <h3 className="step-title">Redeem Rewards</h3>
-              <p className="step-desc">Exchange points for cashback, coupons, or exclusive gifts.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FEATURES ── */}
-      <section className="landing-section features" id="features">
-        <div className="features-inner">
-          <div className="section-tag">● Features</div>
-          <h2 className="section-title">Built for the <span className="gold">Smart Shopper</span></h2>
-
-          <div className="features-grid">
-            <div className="feat-card">
-              <div className="feat-icon">⚡</div>
-              <h3 className="feat-title">Fast Verification</h3>
-              <p className="feat-desc">Our admins verify your bills within 24 hours so you get points fast.</p>
-            </div>
-            <div className="feat-card">
-              <div className="feat-icon">🎯</div>
-              <h3 className="feat-title">Tiered Rewards</h3>
-              <p className="feat-desc">The more you shop, the higher your tier and the better your rewards.</p>
-            </div>
-            <div className="feat-card">
-              <div className="feat-icon">📈</div>
-              <h3 className="feat-title">Detailed Insights</h3>
-              <p className="feat-desc">Track your spending and rewards growth with beautiful analytics.</p>
-            </div>
-            <div className="feat-card">
-              <div className="feat-icon">🎁</div>
-              <h3 className="feat-title">Instant Redemptions</h3>
-              <p className="feat-desc">Redeem your hard-earned points instantly at the store checkout.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TIERS ── */}
-      <section className="landing-section tiers" id="tiers">
-        <div className="tiers-inner">
-          <div className="section-tag">● Loyalty Tiers</div>
-          <h2 className="section-title">Unlock <span className="gold">Premium Benefits</span></h2>
-
-          <div className="tiers-grid">
-            <div className="tier-card">
-              <div className="tier-badge bronze">Bronze</div>
-              <div className="tier-pts">0 - 500</div>
-              <p className="tier-pts-label">Points needed</p>
-              <ul className="tier-perks">
-                <li>Basic Reward Access</li>
-                <li>Standard Support</li>
-                <li>1x Point Multiplier</li>
-              </ul>
-            </div>
-            <div className="tier-card featured">
-              <div className="tier-badge silver">Silver</div>
-              <div className="tier-pts">501 - 2000</div>
-              <p className="tier-pts-label">Points needed</p>
-              <ul className="tier-perks">
-                <li>Priority Verification</li>
-                <li>5% Extra Cashback</li>
-                <li>1.2x Point Multiplier</li>
-              </ul>
-            </div>
-            <div className="tier-card">
-              <div className="tier-badge gold">Gold</div>
-              <div className="tier-pts">2001+</div>
-              <p className="tier-pts-label">Points needed</p>
-              <ul className="tier-perks">
-                <li>VIP Support</li>
-                <li>10% Extra Cashback</li>
-                <li>1.5x Point Multiplier</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── APP SCREENSHOTS ── */}
-      <section className="screenshots" id="screenshots">
-        <div className="screenshots-inner">
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <div className="section-tag" style={{ justifyContent: 'center' }}>● See It In Action</div>
-            <div className="section-title">Your Rewards, <span style={{ color: 'var(--gold)' }}>Right in Your Hands</span></div>
-            <p className="section-sub" style={{ margin: '0.75rem auto 0', maxWidth: '480px' }}>A clean, fast experience built for everyday shoppers — upload bills, track points, and redeem rewards effortlessly.</p>
-          </div>
-          <div className="screenshots-grid">
-            <div className="phone-frame">
-              <div className="phone-notch"></div>
-              <img src="/download.jpg" alt="App Home" />
-            </div>
-            <div className="phone-frame phone-center">
-              <div className="phone-notch"></div>
-              <img src="/download (1).jpg" alt="Reward Store" />
-            </div>
-            <div className="phone-frame">
-              <div className="phone-notch"></div>
-              <img src="/download (2).jpg" alt="Profile & Settings" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section className="landing-section cta">
-        <div className="cta-inner">
-          <div className="cta-box">
-            <h2>Ready to start <span>earning?</span></h2>
-            <p>Join thousands of users who are turning their shopping bills into real rewards today.</p>
-            <div className="store-btns">
-              <a href="#" className="store-btn" onClick={handleInstall}>
-                <div className="store-btn-icon">📱</div>
-                <div className="store-btn-text">
-                  <small>Download for</small>
-                  <span>iOS & Android</span>
-                </div>
-              </a>
-              <a href="#" className="store-btn" onClick={(e) => { e.preventDefault(); navigate("/user/login"); }}>
-                <div className="store-btn-icon">✨</div>
-                <div className="store-btn-text">
-                  <small>Join now</small>
-                  <span>User Portal</span>
-                </div>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* iOS Install Guide Modal */}
-      {showIOSGuide && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setShowIOSGuide(false)}>
-          <div style={{ background: '#fff', borderRadius: '24px 24px 0 0', padding: '2rem', width: '100%', maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1rem', color: '#1a0000' }}>Install on iPhone</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '1.5rem' }}>1️⃣</span>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#444' }}>Tap the <strong>Share</strong> button at the bottom of Safari</p>
+      {/* HOW IT WORKS */}
+      <section className="lp-section" id="how">
+        <div className="lp-container">
+          <div className="lp-section-label">Simple Process</div>
+          <h2 className="lp-section-title">How Inaamify Works</h2>
+          <p className="lp-section-sub">6 easy steps — from customer joining your shop to redeeming exciting gifts.</p>
+          <div className="lp-steps-grid">
+            {[
+              { n: 1, color: "#2980B9", title: "Customer Joins Your Shop", desc: "Customer scans your QR code or clicks your shop link to connect and register with your loyalty program.", delay: "0s" },
+              { n: 2, color: "#8E44AD", title: "Upload Purchase Bill", desc: "After shopping, the customer uploads their bill or receipt and enters the amount they spent.", delay: ".1s" },
+              { n: 3, color: "#E8620A", title: "Seller Approves", desc: "You verify the bill in your dashboard and approve it with just one click. Full control stays with you.", delay: ".2s" },
+              { n: 4, color: "#F5A623", title: "Points Credited Instantly", desc: "The customer instantly receives reward points. You decide the ₹ to Points conversion ratio.", delay: ".1s" },
+              { n: 5, color: "#27AE60", title: "Customer Redeems Rewards", desc: "When ready, the customer selects a gift from your rewards list and clicks Redeem. You get notified.", delay: ".2s" },
+              { n: 6, color: "#1A2B4C", title: "You Approve & Deliver", desc: "You approve the redemption request, the customer collects their gift, and you mark it as delivered.", delay: ".3s" },
+            ].map(({ n, color, title, desc, delay }) => (
+              <div key={n} className="lp-step-card reveal" style={{ borderTopColor: color, transitionDelay: delay }}>
+                <div className="lp-step-num" style={{ background: color }}>{n}</div>
+                <h3>{title}</h3>
+                <p>{desc}</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '1.5rem' }}>2️⃣</span>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#444' }}>Scroll down and tap <strong>"Add to Home Screen"</strong></p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '1.5rem' }}>3️⃣</span>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#444' }}>Tap <strong>"Add"</strong> in the top right corner</p>
-              </div>
-            </div>
-            <button onClick={() => setShowIOSGuide(false)} style={{ marginTop: '1.5rem', width: '100%', background: '#800000', color: '#fff', border: 'none', borderRadius: '14px', padding: '0.9rem', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>Got it!</button>
+            ))}
           </div>
         </div>
-      )}
+      </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="landing-footer">
-        <div className="footer-left">
-          <div className="footer-logo">
-            <div className="footer-icon" style={{ padding: '0', overflow: 'hidden' }}>
-              <img src="/logo.jpeg" alt="L" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {/* REAL EXAMPLE */}
+      <section className="lp-section lp-example-section">
+        <div className="lp-container">
+          <div className="lp-section-label">See the Difference</div>
+          <h2 className="lp-section-title">A Real Customer. Real Numbers.</h2>
+          <p className="lp-section-sub">What happens when a customer spends ₹1000 at your shop?</p>
+          <div className="lp-example-box reveal">
+            <div className="lp-ex-col">
+              <h4 className="neutral">The Situation</h4>
+              <span className="lp-ex-rupee">₹1,000</span>
+              <p>A customer walks in and buys groceries or any product worth ₹1000 from your shop today.</p>
             </div>
-            <span className="footer-brand">Inaam<span>ify</span></span>
+            <div className="lp-ex-col lp-ex-center">
+              <h4 className="bad">❌ Without Inaamify</h4>
+              <p>Customer gets nothing. No reward. No reason to come back. They might go to the cheaper shop next time.</p>
+              <div className="lp-ex-result bad">😞 Customer lost</div>
+            </div>
+            <div className="lp-ex-col">
+              <h4 className="good">✅ With Inaamify</h4>
+              <p>Customer earns reward points, redeems an exciting gift from your list, and tells friends about your shop!</p>
+              <div className="lp-ex-result good">🎉 Customer stays loyal</div>
+            </div>
           </div>
-          <p className="footer-copy">© 2026 Inaamify. All rights reserved.</p>
         </div>
-        <div className="footer-links">
-          <a href="#" onClick={(e) => { e.preventDefault(); navigate("/privacy-policy"); }}>Privacy Policy</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); navigate("/terms"); }}>Terms of Service</a>
+      </section>
+
+      {/* BENEFITS */}
+      <section className="lp-section lp-benefits-section" id="benefits">
+        <div className="lp-container">
+          <div className="lp-section-label lp-gold-label">Why Sellers Win</div>
+          <h2 className="lp-section-title lp-white-title">Everything You Need to Grow</h2>
+          <p className="lp-section-sub lp-muted-sub">Inaamify gives you powerful tools to build lasting customer relationships.</p>
+          <div className="lp-benefits-grid">
+            {[
+              { icon: "👥", bg: "rgba(79,195,247,.15)", title: "Increase Repeat Customers", desc: "Reward system incentivizes customers to return to YOUR shop every single time they need to buy.", delay: "0s" },
+              { icon: "💰", bg: "rgba(245,166,35,.15)", title: "No Need to Cut Prices", desc: "Compete without a price war. Give value through rewards and gifts, not through margin-killing discounts.", delay: ".1s" },
+              { icon: "🤝", bg: "rgba(39,174,96,.15)", title: "Build Real Loyalty", desc: "Create emotional bonds with your customers. People who earn points feel connected — they keep coming back.", delay: ".2s" },
+              { icon: "⭐", bg: "rgba(232,98,10,.15)", title: "Stand Out From Competitors", desc: "Be the only shop in your area with a proper rewards program. Customers will choose you over similar shops.", delay: ".3s" },
+              { icon: "🎯", bg: "rgba(233,30,99,.15)", title: "Full Control in Your Hands", desc: "You set the points ratio, you choose the rewards, you approve everything. Your shop, your rules.", delay: ".1s" },
+              { icon: "📊", bg: "rgba(0,188,212,.15)", title: "Insights & Analytics", desc: "See who your best customers are, track spending patterns, and make smarter business decisions.", delay: ".2s" },
+            ].map(({ icon, bg, title, desc, delay }) => (
+              <div key={title} className="lp-benefit-card reveal" style={{ transitionDelay: delay }}>
+                <div className="lp-benefit-icon" style={{ background: bg }}>{icon}</div>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
+
+      {/* FOR WHO */}
+      <section className="lp-section" id="who">
+        <div className="lp-container">
+          <div className="lp-section-label">For Everyone</div>
+          <h2 className="lp-section-title">Who Is Inaamify For?</h2>
+          <p className="lp-section-sub">Two sides of the same coin — customers love it, sellers benefit from it.</p>
+          <div className="lp-who-grid reveal">
+            <div className="lp-who-card lp-who-customers">
+              <h3>🛍️ For Customers</h3>
+              {["Join any shop via QR code or link", "Upload bills and earn reward points", "Track your points in real-time", "Browse and redeem exciting gifts", "Use with multiple shops at once", "Shop at same price — get MORE!"].map(f => (
+                <div key={f} className="lp-who-feature"><span className="lp-tick">✓</span> {f}</div>
+              ))}
+              <div className="lp-free-badge">🎉 100% Free for Customers</div>
+            </div>
+            <div className="lp-who-card lp-who-sellers">
+              <h3>🏪 For Shop Owners</h3>
+              {["Set up your custom loyalty program", "Define your own ₹ to points ratio", "Approve bills with 1 click dashboard", "Create and manage your rewards list", "View customer analytics & reports", "Multi-shop management support"].map(f => (
+                <div key={f} className="lp-who-feature"><span className="lp-tick">✓</span> {f}</div>
+              ))}
+              <div className="lp-free-badge">💼 Subscription Plan for Owners</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MULTI-SHOP */}
+      <section className="lp-section lp-multishop-section">
+        <div className="lp-container">
+          <div className="lp-multishop-inner reveal">
+            <div className="lp-multishop-icon">🏬</div>
+            <div>
+              <h3>Multi-Shop Support</h3>
+              <p>Customers can use Inaamify across multiple shops — each shop has its own separate points system, rewards list, and seller dashboard. Perfect for shop owners running more than one business. Whether you have one kirana store or a chain of outlets, Inaamify scales with you.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="lp-cta-section">
+        <div className="lp-container" style={{ textAlign: "center" }}>
+          <h2>Ready to Reward Your Customers? 🚀</h2>
+          <p>Join Inaamify today — free for customers, powerful for sellers.</p>
+          <a href="#" className="lp-btn-dark" onClick={(e) => { e.preventDefault(); navigate("/selection"); }}>Visit www.inaamify.com</a>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="lp-footer">
+        <p>© 2026 Inaamify &nbsp;|&nbsp; <a href="https://www.inaamify.com" target="_blank" rel="noreferrer">www.inaamify.com</a> &nbsp;|&nbsp; Free for Customers &nbsp;|&nbsp; Paid System for Shop Owners</p>
+        <p style={{ marginTop: ".4rem", fontSize: ".8rem" }}>Har Kharidari Par Inaam 🎁</p>
       </footer>
     </div>
   );
