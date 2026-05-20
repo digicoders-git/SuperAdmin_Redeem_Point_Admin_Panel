@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, FileText, ExternalLink, Image, Pencil, Info, Loader2, CheckCircle, XCircle, X, ZoomIn } from "lucide-react";
 import api from "../api/axios";
 import Swal from "sweetalert2";
@@ -12,8 +12,10 @@ const statusStyle = {
 
 export default function BillDetail() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { state } = useLocation();
   const [bill, setBill] = useState(state?.bill);
+  const [loading, setLoading] = useState(!bill);
   const [editingAmount, setEditingAmount] = useState(false);
   const [newAmount, setNewAmount] = useState("");
   const [editReason, setEditReason] = useState("");
@@ -22,6 +24,27 @@ export default function BillDetail() {
   const [actionId, setActionId] = useState(null);
   const [fullScreen, setFullScreen] = useState(false);
   const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+
+  useEffect(() => {
+    if (!bill && id) {
+      setLoading(true);
+      api.get(`/bills/admin/${id}`)
+        .then(({ data }) => {
+          if (data.bill) {
+            setBill(data.bill);
+          } else {
+            Swal.fire("Error", "Bill not found", "error");
+            navigate("/admin/bills", { replace: true });
+          }
+        })
+        .catch((err) => {
+          Swal.fire("Error", err.response?.data?.message || "Failed to load bill", "error");
+          navigate("/admin/bills", { replace: true });
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [id, bill, navigate]);
+
   const getBillUrl = (path) => {
     if (!path || path === "manual_adjustment") return null;
     if (path.startsWith("http")) return path;
@@ -40,7 +63,15 @@ export default function BillDetail() {
     return `${serverBase}/uploads/${cleanPath}`;
   };
 
-  if (!bill) { navigate("/bills", { replace: true }); return null; }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#fff5f5] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#800000]" size={40} />
+      </div>
+    );
+  }
+
+  if (!bill) return null;
 
   const isPdf = (url) => url?.toLowerCase().includes(".pdf");
 

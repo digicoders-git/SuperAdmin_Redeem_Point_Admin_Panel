@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Gift, Info, Loader2, CheckCircle, XCircle } from "lucide-react";
 import api from "../api/axios";
 import Swal from "sweetalert2";
@@ -13,12 +13,42 @@ const statusStyle = {
 
 export default function RedemptionDetail() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { state } = useLocation();
   const [r, setR] = useState(state?.redemption);
+  const [loading, setLoading] = useState(!r);
   const [reason, setReason] = useState("");
   const [actionId, setActionId] = useState(null);
 
-  if (!r) { navigate("/admin/redemptions", { replace: true }); return null; }
+  useEffect(() => {
+    if (!r && id) {
+      setLoading(true);
+      api.get(`/rewards/admin/redemptions/${id}`)
+        .then(({ data }) => {
+          if (data.redemption) {
+            setR(data.redemption);
+          } else {
+            Swal.fire("Error", "Redemption not found", "error");
+            navigate("/admin/redemptions", { replace: true });
+          }
+        })
+        .catch((err) => {
+          Swal.fire("Error", err.response?.data?.message || "Failed to load redemption", "error");
+          navigate("/admin/redemptions", { replace: true });
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [id, r, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#fff5f5] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#800000]" size={40} />
+      </div>
+    );
+  }
+
+  if (!r) return null;
 
   const images = r.rewardId?.rewardImages?.length > 0 ? r.rewardId.rewardImages : r.rewardId?.rewardImage ? [r.rewardId.rewardImage] : [];
 

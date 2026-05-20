@@ -169,16 +169,20 @@ export default function AdminProfile() {
   // Version: 1.0.4 - Robust Image Fix
   const getFullUrl = (path) => {
     if (!path) return "";
-    if (path.startsWith("http")) {
-      // Fix old URLs missing /uploads/ prefix
-      return path.replace(/\/admin-photos\//, "/uploads/admin-photos/");
-    }
     
     // Normalize slashes
     let cleanPath = path.replace(/\\/g, "/");
     
+    if (cleanPath.startsWith("http")) {
+      const productionDomain = "https://api.inaamify.com";
+      if (cleanPath.startsWith(productionDomain)) {
+        cleanPath = cleanPath.substring(productionDomain.length);
+      } else {
+        return cleanPath.replace(/\/admin-photos\//, "/uploads/admin-photos/");
+      }
+    }
+    
     // Aggressively find 'uploads/' or 'uploads\' (case-insensitive)
-    const uploadsMatch = cleanPath.toLowerCase().match(/\/uploads\//) || cleanPath.toLowerCase().match(/^uploads\//);
     const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
     
     if (uploadsIndex !== -1) {

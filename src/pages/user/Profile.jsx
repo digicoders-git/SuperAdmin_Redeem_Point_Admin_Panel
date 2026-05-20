@@ -25,10 +25,18 @@ const isStandalone = () => window.matchMedia("(display-mode: standalone)").match
 const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
 const getFullUrl = (path) => {
   if (!path) return "";
-  if (path.startsWith("http")) return path;
 
   // Normalize slashes
   let cleanPath = path.replace(/\\/g, "/");
+
+  if (cleanPath.startsWith("http")) {
+    const productionDomain = "https://api.inaamify.com";
+    if (cleanPath.startsWith(productionDomain)) {
+      cleanPath = cleanPath.substring(productionDomain.length);
+    } else {
+      return cleanPath;
+    }
+  }
 
   // Aggressively find the 'uploads' part and take everything after it
   const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
