@@ -1,59 +1,32 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { useGoogleLogin } from "@react-oauth/google";
+import { Loader2, Mail, Lock, Eye, EyeOff, Phone, ShieldCheck } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const [loginMethod, setLoginMethod] = useState("email"); // email, phone, otp
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(0);
+
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem("adminToken")) navigate("/admin/dashboard", { replace: true });
-  }, []);
-
-  const handleGoogleSuccess = async (tokenResponse) => {
-    setLoading(true);
-    try {
-      const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-      });
-      const userInfo = await userInfoRes.json();
-      const { data } = await api.post("/admin/google-login", { googleUserInfo: userInfo });
-      localStorage.setItem("adminToken", data.token);
-      localStorage.setItem("adminInfo", JSON.stringify(data.admin));
-      Swal.fire({ icon: "success", title: `Welcome, ${data.admin.name}!`, timer: 800, showConfirmButton: false });
-      setTimeout(() => navigate("/admin/dashboard", { replace: true }), 300);
-    } catch (err) {
-      Swal.fire({ icon: "error", title: "Google Login Failed", text: err.response?.data?.message || "Try again" });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [navigate]);
 
   useEffect(() => {
-    // Handle Google Redirect Response (for PWA/Mobile)
-    const hash = window.location.hash;
-    if (hash && hash.includes("access_token=")) {
-      const params = new URLSearchParams(hash.replace("#", "?"));
-      const access_token = params.get("access_token");
-      if (access_token) {
-        handleGoogleSuccess({ access_token });
-        // Clear hash to prevent re-processing
-        window.history.replaceState(null, "", window.location.pathname + window.location.search);
-      }
-    }
-  }, []);
-
-  const googleLogin = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
-    onError: () => Swal.fire({ icon: "error", title: "Google Login Failed" }),
-    ux_mode: window.matchMedia('(display-mode: standalone)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'redirect' : 'popup',
-  });
+    if (timer <= 0) return;
+    const id = setInterval(() => setTimer(t => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [timer]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -71,6 +44,44 @@ export default function AdminLogin() {
     }
   };
 
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    if (phone.length !== 10) {
+      Swal.fire({ icon: "error", title: "Invalid Number", text: "Enter a valid 10-digit mobile number" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post("/admin/send-otp", { phone });
+      setLoginMethod("otp");
+      setTimer(60);
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || "Failed to send OTP" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      Swal.fire({ icon: "error", title: "Invalid OTP", text: "Enter the 6-digit OTP" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data } = await api.post("/admin/verify-otp", { phone, otp });
+      localStorage.setItem("adminToken", data.token);
+      localStorage.setItem("adminInfo", JSON.stringify(data.admin));
+      Swal.fire({ icon: "success", title: `Welcome!`, timer: 800, showConfirmButton: false });
+      setTimeout(() => navigate("/admin/dashboard", { replace: true }), 300);
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || "Invalid OTP" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fff5f5] font-sans flex flex-col items-center justify-center px-5 py-10">
       <div className="fixed top-0 left-0 w-72 h-72 bg-[#800000]/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
@@ -82,52 +93,125 @@ export default function AdminLogin() {
             <img src="/logo.jpeg" alt="Inaamify" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-extrabold text-[#1a0000] tracking-tight">Inaamify Admin</h1>
-          <p className="text-sm text-gray-400 font-medium mt-1">Enter your email & password to continue</p>
+          <p className="text-sm text-gray-400 font-medium mt-1 text-center">
+            {loginMethod === "email" ? "Enter your email & password to continue" : loginMethod === "phone" ? "Enter your mobile number to continue" : "Enter the OTP sent to your number"}
+          </p>
         </div>
 
         <div className="bg-white rounded-[32px] shadow-xl shadow-[#800000]/10 border border-[#ffe4e4] p-6">
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Email / Admin ID</label>
-              <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
-                  <Mail size={16} />
+          {loginMethod === "email" ? (
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Email / Admin ID</label>
+                <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
+                    <Mail size={16} />
+                  </div>
+                  <input type="text" placeholder="Enter email or ID" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
                 </div>
-                <input type="text" placeholder="Enter email or ID" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
               </div>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Password</label>
-              <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
-                  <Lock size={16} />
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Password</label>
+                <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
+                    <Lock size={16} />
+                  </div>
+                  <input type={showPwd ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
+                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="text-gray-400 shrink-0">
+                    {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
-                <input type={showPwd ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
-                <button type="button" onClick={() => setShowPwd(!showPwd)} className="text-gray-400 shrink-0">
-                  {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
               </div>
-            </div>
-            <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 mt-2">
-              {loading ? <><Loader2 size={18} className="animate-spin" /> Please wait...</> : "Continue"}
-            </button>
+              <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 mt-2">
+                {loading ? <><Loader2 size={18} className="animate-spin" /> Please wait...</> : "Continue"}
+              </button>
 
-            {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
-              <>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs text-gray-400 font-semibold">OR</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-xs text-gray-400 font-semibold">OR</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+              <button type="button" onClick={() => setLoginMethod("phone")} disabled={loading} className="w-full bg-white border-2 border-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-gray-50 transition active:scale-[0.98] disabled:opacity-60">
+                <Phone size={18} className="text-[#800000]" />
+                Login with OTP
+              </button>
+            </form>
+          ) : loginMethod === "phone" ? (
+            <form onSubmit={handleSendOtp} className="space-y-5">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Mobile Number</label>
+                <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
+                    <Phone size={16} />
+                  </div>
+                  <input
+                    type="tel"
+                    placeholder="Enter 10-digit mobile number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    inputMode="numeric"
+                    maxLength={10}
+                    required
+                    className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium"
+                  />
                 </div>
-                <button type="button" onClick={() => googleLogin()} disabled={loading} className="w-full bg-white border-2 border-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-gray-50 transition active:scale-[0.98] disabled:opacity-60">
-                  <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                  Continue with Google
-                </button>
-              </>
-            )}
-          </form>
+              </div>
+              <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 mt-2">
+                {loading ? <><Loader2 size={18} className="animate-spin" /> Sending OTP...</> : "Send OTP"}
+              </button>
+              
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-xs text-gray-400 font-semibold">OR</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+              <button type="button" onClick={() => setLoginMethod("email")} disabled={loading} className="w-full bg-white border-2 border-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-gray-50 transition active:scale-[0.98] disabled:opacity-60">
+                <Mail size={18} className="text-[#800000]" />
+                Login with Password
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOtp} className="space-y-5">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">OTP</label>
+                <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
+                    <ShieldCheck size={16} />
+                  </div>
+                  <input
+                    type="tel"
+                    placeholder="Enter 6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    inputMode="numeric"
+                    maxLength={6}
+                    required
+                    className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium"
+                    autoFocus
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-2 ml-1">OTP sent to <span className="font-bold text-gray-600">+91 {phone}</span></p>
+              </div>
+              <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 mt-2">
+                {loading ? <><Loader2 size={18} className="animate-spin" /> Verifying...</> : "Verify & Login"}
+              </button>
+              <div className="text-center">
+                {timer > 0 ? (
+                  <p className="text-xs text-gray-400">Resend OTP in <span className="font-bold text-[#800000]">{timer}s</span></p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setLoginMethod("phone"); setOtp(""); }}
+                    className="text-xs text-[#800000] font-bold hover:underline"
+                  >
+                    Resend OTP
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
         </div>
-        <p className="text-center text-xs text-gray-400 mt-4">New here? Just enter your email & password — account will be created automatically.</p>
+        <p className="text-center text-xs text-gray-400 mt-4">New here? Just login — account will be created automatically.</p>
       </div>
     </div>
   );
