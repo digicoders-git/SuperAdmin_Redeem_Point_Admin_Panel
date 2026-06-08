@@ -64,8 +64,8 @@ export default function AdminLogin() {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (otp.length !== 6) {
-      Swal.fire({ icon: "error", title: "Invalid OTP", text: "Enter the 6-digit OTP" });
+    if (otp.length !== 4) {
+      Swal.fire({ icon: "error", title: "Invalid OTP", text: "Enter the 4-digit OTP" });
       return;
     }
     setLoading(true);
@@ -180,11 +180,11 @@ export default function AdminLogin() {
                   </div>
                   <input
                     type="tel"
-                    placeholder="Enter 6-digit OTP"
+                    placeholder="Enter 4-digit OTP"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
                     inputMode="numeric"
-                    maxLength={6}
+                    maxLength={4}
                     required
                     className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium"
                     autoFocus
