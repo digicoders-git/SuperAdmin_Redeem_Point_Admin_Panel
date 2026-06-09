@@ -6,16 +6,12 @@ import Swal from "sweetalert2";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [loginMethod, setLoginMethod] = useState("email"); // email, phone, otp
+  const [loginMethod, setLoginMethod] = useState("phone"); // phone, otp
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(0);
 
-  const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -27,22 +23,6 @@ export default function AdminLogin() {
     const id = setInterval(() => setTimer(t => t - 1), 1000);
     return () => clearInterval(id);
   }, [timer]);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { data } = await api.post("/admin/login", { email, password });
-      localStorage.setItem("adminToken", data.token);
-      localStorage.setItem("adminInfo", JSON.stringify(data.admin));
-      Swal.fire({ icon: "success", title: "Welcome!", timer: 800, showConfirmButton: false });
-      setTimeout(() => navigate("/admin/dashboard", { replace: true }), 300);
-    } catch (err) {
-      Swal.fire({ icon: "error", title: "Failed", text: err.response?.data?.message || "Something went wrong" });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
@@ -94,49 +74,12 @@ export default function AdminLogin() {
           </div>
           <h1 className="text-2xl font-extrabold text-[#1a0000] tracking-tight">Inaamify Admin</h1>
           <p className="text-sm text-gray-400 font-medium mt-1 text-center">
-            {loginMethod === "email" ? "Enter your email & password to continue" : loginMethod === "phone" ? "Enter your mobile number to continue" : "Enter the OTP sent to your number"}
+            {loginMethod === "phone" ? "Enter your mobile number to continue" : "Enter the OTP sent to your number"}
           </p>
         </div>
 
         <div className="bg-white rounded-[32px] shadow-xl shadow-[#800000]/10 border border-[#ffe4e4] p-6">
-          {loginMethod === "email" ? (
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Email / Admin ID</label>
-                <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
-                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
-                    <Mail size={16} />
-                  </div>
-                  <input type="text" placeholder="Enter email or ID" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Password</label>
-                <div className="flex items-center bg-[#fff5f5] border-2 border-[#ffe4e4] rounded-2xl px-4 py-3 gap-3">
-                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#800000] shadow-sm">
-                    <Lock size={16} />
-                  </div>
-                  <input type={showPwd ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-transparent w-full text-sm text-gray-800 placeholder-gray-400 outline-none font-medium" />
-                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="text-gray-400 shrink-0">
-                    {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-              <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 mt-2">
-                {loading ? <><Loader2 size={18} className="animate-spin" /> Please wait...</> : "Continue"}
-              </button>
-
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="text-xs text-gray-400 font-semibold">OR</span>
-                <div className="flex-1 h-px bg-gray-200" />
-              </div>
-              <button type="button" onClick={() => setLoginMethod("phone")} disabled={loading} className="w-full bg-white border-2 border-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-gray-50 transition active:scale-[0.98] disabled:opacity-60">
-                <Phone size={18} className="text-[#800000]" />
-                Login with OTP
-              </button>
-            </form>
-          ) : loginMethod === "phone" ? (
+          {loginMethod === "phone" ? (
             <form onSubmit={handleSendOtp} className="space-y-5">
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Mobile Number</label>
@@ -158,16 +101,6 @@ export default function AdminLogin() {
               </div>
               <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#800000] to-[#6b0000] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#800000]/30 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 mt-2">
                 {loading ? <><Loader2 size={18} className="animate-spin" /> Sending OTP...</> : "Send OTP"}
-              </button>
-              
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="text-xs text-gray-400 font-semibold">OR</span>
-                <div className="flex-1 h-px bg-gray-200" />
-              </div>
-              <button type="button" onClick={() => setLoginMethod("email")} disabled={loading} className="w-full bg-white border-2 border-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-gray-50 transition active:scale-[0.98] disabled:opacity-60">
-                <Mail size={18} className="text-[#800000]" />
-                Login with Password
               </button>
             </form>
           ) : (
