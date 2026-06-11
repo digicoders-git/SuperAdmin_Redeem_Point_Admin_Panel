@@ -11,7 +11,6 @@ export default function AdminProfileSetupModal() {
   const [formData, setFormData] = useState({
     name: "",
     shopName: "",
-    mobile: "",
   });
 
   const checkSetupStatus = () => {
@@ -25,7 +24,6 @@ export default function AdminProfileSetupModal() {
         setFormData({
           name: adminInfo.name || "",
           shopName: adminInfo.shopName || "",
-          mobile: adminInfo.mobile || "",
         });
         return;
       }
@@ -50,7 +48,7 @@ export default function AdminProfileSetupModal() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.shopName || !formData.mobile) {
+    if (!formData.name || !formData.shopName) {
       return Swal.fire({ icon: "warning", title: "All fields are required" });
     }
 
@@ -128,23 +126,6 @@ export default function AdminProfileSetupModal() {
                   placeholder="Enter your shop name"
                   value={formData.shopName}
                   onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
-                  required
-                  className="w-full bg-[#fff5f5] border-2 border-[#ffe4e4] focus:border-[#800000] rounded-2xl pl-12 pr-4 py-3.5 text-sm text-gray-800 outline-none transition-all font-semibold"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block px-1">Mobile Number</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#800000] transition-colors">
-                  <Phone size={18} />
-                </div>
-                <input
-                  type="tel"
-                  placeholder="Enter mobile number"
-                  value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                   required
                   className="w-full bg-[#fff5f5] border-2 border-[#ffe4e4] focus:border-[#800000] rounded-2xl pl-12 pr-4 py-3.5 text-sm text-gray-800 outline-none transition-all font-semibold"
                 />
