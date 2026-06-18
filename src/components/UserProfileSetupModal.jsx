@@ -21,7 +21,7 @@ export default function UserProfileSetupModal() {
       if (userInfo.needsProfileSetup) {
         setIsOpen(true);
         setFormData({
-          name: userInfo.name || "",
+          name: userInfo.name === userInfo.mobile ? "" : (userInfo.name || ""),
         });
         return;
       }

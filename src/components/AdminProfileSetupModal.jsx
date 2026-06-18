@@ -22,7 +22,7 @@ export default function AdminProfileSetupModal() {
       if (adminInfo.needsProfileSetup) {
         setIsOpen(true);
         setFormData({
-          name: adminInfo.name || "",
+          name: adminInfo.name === adminInfo.mobile ? "" : (adminInfo.name || ""),
           shopName: adminInfo.shopName || "",
         });
         return;
