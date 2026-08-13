@@ -6,6 +6,19 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const userToken = localStorage.getItem("userToken");
+    const adminToken = localStorage.getItem("adminToken");
+    
+    if (userToken && !adminToken) {
+      navigate("/user/bills", { replace: true });
+    } else if (adminToken && !userToken) {
+      navigate("/admin/dashboard", { replace: true });
+    } else if (userToken && adminToken) {
+      navigate("/selection", { replace: true });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     const reveals = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(
       (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("visible"); }),

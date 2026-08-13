@@ -25,6 +25,12 @@ export default function Login() {
   }, [shopIdFromQR]);
 
   useEffect(() => {
+    if (localStorage.getItem("userToken")) {
+      navigate("/user/bills", { replace: true });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     if (timer <= 0) return;
     const id = setInterval(() => setTimer(t => t - 1), 1000);
     return () => clearInterval(id);
