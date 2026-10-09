@@ -191,13 +191,23 @@ export default function AdminRewards() {
                   </label>
                 )}
               </div>
-              <p className="text-xs text-gray-400 mt-1.5">Or paste image URL:</p>
+              <p className="text-xs text-gray-400 mt-1.5">Or paste image URL (Preview will appear below):</p>
               <input
                 placeholder="https://example.com/image.jpg"
                 value={form.rewardImage}
                 onChange={(e) => setForm({ ...form, rewardImage: e.target.value })}
                 className="w-full border-2 border-gray-100 bg-[#fff5f5] rounded-xl px-4 py-2.5 text-xs text-gray-700 focus:outline-none focus:border-[#800000]/30 mt-1.5"
               />
+              {form.rewardImage && (
+                <div className="mt-2 w-16 h-16 rounded-xl border-2 border-gray-100 overflow-hidden">
+                  <img 
+                    src={form.rewardImage} 
+                    alt="Pasted Preview" 
+                    className="w-full h-full object-cover" 
+                    onError={(e) => { e.target.src = "https://placehold.co/100x100?text=Invalid+URL"; }} 
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-1">
