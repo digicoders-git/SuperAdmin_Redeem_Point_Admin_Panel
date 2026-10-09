@@ -9,8 +9,9 @@ const emptyForm = { rewardName: "", rewardImage: "", pointsRequired: "", descrip
 export default function AdminRewards() {
   const [rewards, setRewards] = useState([]);
   const [form, setForm] = useState(emptyForm);
-  const [imageFiles, setImageFiles] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]); // URLs from server
+  const [imageFiles, setImageFiles] = useState([]); // New files
+  const [imagePreviews, setImagePreviews] = useState([]); // ObjectURLs for new files
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -27,7 +28,7 @@ export default function AdminRewards() {
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length + imageFiles.length > 5) {
+    if (files.length + imageFiles.length + existingImages.length > 5) {
       Swal.fire({ icon: "warning", title: "Max 5 images allowed", timer: 1500, showConfirmButton: false });
       return;
     }
@@ -37,11 +38,14 @@ export default function AdminRewards() {
     setImagePreviews(previews);
   };
 
-  const removePreview = (i) => {
+  const removeExisting = (i) => {
+    setExistingImages(existingImages.filter((_, idx) => idx !== i));
+  };
+
+  const removeNewPreview = (i) => {
     const newFiles = imageFiles.filter((_, idx) => idx !== i);
-    const newPreviews = imagePreviews.filter((_, idx) => idx !== i);
     setImageFiles(newFiles);
-    setImagePreviews(newPreviews);
+    setImagePreviews(newFiles.map((f) => URL.createObjectURL(f)));
   };
 
   const submit = async (e) => {
@@ -52,7 +56,21 @@ export default function AdminRewards() {
       fd.append("rewardName", form.rewardName);
       fd.append("pointsRequired", Number(form.pointsRequired));
       fd.append("description", form.description);
-      if (form.rewardImage) fd.append("rewardImage", form.rewardImage);
+      
+      // If adding new via URL
+      if (!editing && form.rewardImage) {
+        fd.append("rewardImage", form.rewardImage);
+      }
+      
+      // If editing, append remaining existing images
+      if (editing) {
+        existingImages.forEach(url => fd.append("existingImages", url));
+        if (form.rewardImage && !existingImages.includes(form.rewardImage)) {
+           // they pasted a new URL while editing? Very rare but handle it
+           fd.append("existingImages", form.rewardImage);
+        }
+      }
+
       imageFiles.forEach((f) => fd.append("rewardImages", f));
 
       if (editing) {
@@ -63,11 +81,12 @@ export default function AdminRewards() {
       setForm(emptyForm);
       setImageFiles([]);
       setImagePreviews([]);
+      setExistingImages([]);
       setEditing(null);
       Swal.fire({ icon: "success", title: editing ? "Reward Updated!" : "Reward Added!", timer: 1500, showConfirmButton: false });
       load();
-    } catch (e) {
-      Swal.fire({ icon: "error", title: "Failed", text: e.response?.data?.message || "Something went wrong" });
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Failed", text: err.response?.data?.message || "Something went wrong" });
     } finally {
       setSubmitting(false);
     }
@@ -75,9 +94,10 @@ export default function AdminRewards() {
 
   const startEdit = (r) => {
     setEditing(r._id);
-    setForm({ rewardName: r.rewardName, rewardImage: r.rewardImage || "", pointsRequired: r.pointsRequired, description: r.description || "" });
+    setForm({ rewardName: r.rewardName, rewardImage: "", pointsRequired: r.pointsRequired, description: r.description || "" });
     setImageFiles([]);
-    setImagePreviews(r.rewardImages?.length > 0 ? r.rewardImages : r.rewardImage ? [r.rewardImage] : []);
+    setImagePreviews([]);
+    setExistingImages(r.rewardImages?.length > 0 ? r.rewardImages : r.rewardImage ? [r.rewardImage] : []);
   };
 
   const cancelEdit = () => {
@@ -85,6 +105,7 @@ export default function AdminRewards() {
     setForm(emptyForm);
     setImageFiles([]);
     setImagePreviews([]);
+    setExistingImages([]);
   };
 
   const remove = async (id) => {
@@ -173,17 +194,28 @@ export default function AdminRewards() {
             <div>
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Images (max 5)</p>
               <div className="flex flex-wrap gap-2">
-                {imagePreviews.map((src, i) => (
-                  <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-100">
-                    <img src={src} alt="" className="w-full h-full object-cover" />
-                    {imageFiles[i] && (
-                      <button type="button" onClick={() => removePreview(i)} className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
-                        <X size={10} />
-                      </button>
-                    )}
+                {/* Existing Images (Edit mode only) */}
+                {existingImages.map((src, i) => (
+                  <div key={`exist-${i}`} className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-100">
+                    <img src={src} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.src = "https://placehold.co/100x100?text=Invalid"; }} />
+                    <button type="button" onClick={() => removeExisting(i)} className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
+                      <X size={10} />
+                    </button>
                   </div>
                 ))}
-                {imagePreviews.length < 5 && (
+                
+                {/* New Image Previews */}
+                {imagePreviews.map((src, i) => (
+                  <div key={`new-${i}`} className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-100">
+                    <img src={src} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => removeNewPreview(i)} className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Add Image Button */}
+                {existingImages.length + imagePreviews.length < 5 && (
                   <label className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#800000]/40 bg-[#fff5f5] transition-colors">
                     <Plus size={18} className="text-gray-400" />
                     <span className="text-[9px] text-gray-400 mt-0.5">Add</span>
@@ -191,22 +223,27 @@ export default function AdminRewards() {
                   </label>
                 )}
               </div>
-              <p className="text-xs text-gray-400 mt-1.5">Or paste image URL (Preview will appear below):</p>
-              <input
-                placeholder="https://example.com/image.jpg"
-                value={form.rewardImage}
-                onChange={(e) => setForm({ ...form, rewardImage: e.target.value })}
-                className="w-full border-2 border-gray-100 bg-[#fff5f5] rounded-xl px-4 py-2.5 text-xs text-gray-700 focus:outline-none focus:border-[#800000]/30 mt-1.5"
-              />
-              {form.rewardImage && (
-                <div className="mt-2 w-16 h-16 rounded-xl border-2 border-gray-100 overflow-hidden">
-                  <img 
-                    src={form.rewardImage} 
-                    alt="Pasted Preview" 
-                    className="w-full h-full object-cover" 
-                    onError={(e) => { e.target.src = "https://placehold.co/100x100?text=Invalid+URL"; }} 
+              
+              {!editing && (
+                <>
+                  <p className="text-xs text-gray-400 mt-1.5">Or paste image URL (Preview will appear below):</p>
+                  <input
+                    placeholder="https://example.com/image.jpg"
+                    value={form.rewardImage}
+                    onChange={(e) => setForm({ ...form, rewardImage: e.target.value })}
+                    className="w-full border-2 border-gray-100 bg-[#fff5f5] rounded-xl px-4 py-2.5 text-xs text-gray-700 focus:outline-none focus:border-[#800000]/30 mt-1.5"
                   />
-                </div>
+                  {form.rewardImage && (
+                    <div className="mt-2 w-16 h-16 rounded-xl border-2 border-gray-100 overflow-hidden">
+                      <img 
+                        src={form.rewardImage} 
+                        alt="Pasted Preview" 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => { e.target.src = "https://placehold.co/100x100?text=Invalid+URL"; }} 
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
