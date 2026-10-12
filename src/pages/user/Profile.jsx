@@ -158,22 +158,28 @@ export default function Profile() {
   };
 
   const shareApp = async () => {
-    const shareData = {
-      title: profile?.shopName || "Inaamify",
-      text: `Join ${profile?.shopName || "Inaamify"} to earn reward on every purchase!`,
-      url: window.location.origin + "/user/login" + (profile?.shopId ? `?shopId=${profile.shopId}` : ""),
-    };
+    const rawShopName = adminData?.shopName || profile?.shopName;
+    const shopName = (rawShopName && rawShopName !== "Inaamify" && rawShopName !== "My Profile")
+      ? rawShopName
+      : (adminData?.name || "our shop");
+
+    const shareUrl = window.location.origin + "/user/login" + (profile?.shopId ? `?shopId=${profile.shopId}` : "");
+    const shareMessage = `Join ${shopName} to earn reward on every purchase!\n\n${shareUrl}`;
 
     try {
       if (navigator.share) {
-        await navigator.share(shareData);
+        await navigator.share({
+          title: shopName,
+          text: `Join ${shopName} to earn reward on every purchase!`,
+          url: shareUrl,
+        });
       } else {
-        // Fallback: Copy to clipboard
-        await navigator.clipboard.writeText(shareData.url);
+        // Fallback: Copy full message to clipboard
+        await navigator.clipboard.writeText(shareMessage);
         Swal.fire({
           icon: "success",
-          title: "Link Copied!",
-          text: "App link copied to clipboard",
+          title: "Message Copied!",
+          text: "App share message copied to clipboard",
           timer: 2000,
           showConfirmButton: false,
         });
@@ -239,7 +245,7 @@ export default function Profile() {
                 />
               </div>
             )}
-            <h1 className="text-white font-bold text-xl tracking-wide">{profile?.shopName || "My Profile"}</h1>
+            <h1 className="text-white font-bold text-xl tracking-wide">{(adminData?.shopName && adminData.shopName !== "Inaamify" ? adminData.shopName : profile?.shopName) || "My Profile"}</h1>
           </div>
           <div className="w-10 h-10 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 flex items-center justify-center">
             <User className="text-white" size={20} />
