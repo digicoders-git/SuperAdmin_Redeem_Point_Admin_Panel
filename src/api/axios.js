@@ -5,15 +5,14 @@ const api = axios.create({
 });
 
 // Strip /api suffix and any trailing slashes to get the server base URL
-const serverBaseUrl = import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "").replace(/\/$/, "");
+const serverBaseUrl = (import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL || "").replace(/\/api\/?$/, "").replace(/\/$/, "");
 
 const toAbsoluteUrl = (url) => {
   if (!url) return url;
   const normalized = url.replace(/\\/g, "/");
-  if (normalized.startsWith("http")) return normalized;
-  // Remove /uploads prefix if present
+  if (normalized.startsWith("http://") || normalized.startsWith("https://")) return normalized;
   const cleaned = normalized.replace(/^\/+/, "").replace(/^uploads\//, "");
-  return serverBaseUrl + "/" + cleaned;
+  return serverBaseUrl ? `${serverBaseUrl}/uploads/${cleaned}` : `/uploads/${cleaned}`;
 };
 
 // Attach token to every request

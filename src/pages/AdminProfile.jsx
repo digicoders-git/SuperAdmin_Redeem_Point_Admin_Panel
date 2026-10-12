@@ -165,36 +165,37 @@ export default function AdminProfile() {
     }
   };
 
-  const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
-  // Version: 1.0.4 - Robust Image Fix
+  const serverBase = (import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL || "").replace(/\/api\/?$/, "").replace(/\/$/, "");
+  // Version: 1.0.5 - Robust Image Fix
   const getFullUrl = (path) => {
     if (!path) return "";
-    
-    // Normalize slashes
     let cleanPath = path.replace(/\\/g, "/");
-    
-    if (cleanPath.startsWith("http")) {
-      const productionDomain = "https://api.inaamify.com";
-      if (cleanPath.startsWith(productionDomain)) {
-        cleanPath = cleanPath.substring(productionDomain.length);
+
+    if (cleanPath.startsWith("http://") || cleanPath.startsWith("https://")) {
+      if (!cleanPath.includes("api.inaamify.com") && !cleanPath.includes("localhost")) {
+        return cleanPath;
+      }
+      const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
+      if (uploadsIndex !== -1) {
+        cleanPath = cleanPath.substring(uploadsIndex + 8);
       } else {
-        return cleanPath.replace(/\/admin-photos\//, "/uploads/admin-photos/");
+        const adminPhotosIndex = cleanPath.toLowerCase().indexOf("admin-photos/");
+        if (adminPhotosIndex !== -1) {
+          cleanPath = cleanPath.substring(adminPhotosIndex);
+        } else {
+          return cleanPath;
+        }
+      }
+    } else {
+      const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
+      if (uploadsIndex !== -1) {
+        cleanPath = cleanPath.substring(uploadsIndex + 8);
+      } else {
+        cleanPath = cleanPath.replace(/^\/+/, "");
       }
     }
-    
-    // Aggressively find 'uploads/' or 'uploads\' (case-insensitive)
-    const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
-    
-    if (uploadsIndex !== -1) {
-      // Extract everything AFTER 'uploads/'
-      cleanPath = cleanPath.substring(uploadsIndex + 8);
-    } else {
-      // Strip leading slashes
-      cleanPath = cleanPath.replace(/^\/+/, "");
-    }
-    
-    // Ensure we only have one 'uploads/' in the final URL
-    return `${serverBase}/uploads/${cleanPath}`;
+
+    return serverBase ? `${serverBase}/uploads/${cleanPath}` : `/uploads/${cleanPath}`;
   };
 
   const MenuAction = ({ icon: Icon, label, onClick, badge, color = "text-gray-700", bgColor = "bg-gray-50" }) => (
@@ -231,18 +232,19 @@ export default function AdminProfile() {
         <div className="relative z-10 flex flex-col items-center">
           <div className="relative mb-6 group">
             <div className="w-28 h-28 rounded-[35%] bg-white/10 backdrop-blur-md border border-white/20 p-1 shadow-2xl transition-transform duration-500 group-hover:rotate-6 overflow-hidden">
-              <div className="w-full h-full rounded-[35%] bg-gradient-to-br from-white to-gray-100 flex items-center justify-center shadow-inner overflow-hidden">
-                {admin.profilePhoto ? (
+              <div className="w-full h-full rounded-[35%] bg-gradient-to-br from-white to-gray-100 flex items-center justify-center shadow-inner overflow-hidden relative">
+                <span className="text-3xl font-black text-[#800000] select-none">
+                  {(admin.name || admin.adminId || "A")[0].toUpperCase()}
+                </span>
+                {admin.profilePhoto && (
                   <img 
                     src={getFullUrl(admin.profilePhoto)} 
                     alt="Admin" 
-                    className="w-full h-full object-cover" 
-                    crossOrigin="anonymous"
+                    className="absolute inset-0 w-full h-full object-cover" 
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
-                ) : (
-                  <span className="text-3xl font-black text-[#800000]">
-                    {(admin.name || admin.adminId || "A")[0].toUpperCase()}
-                  </span>
                 )}
               </div>
             </div>

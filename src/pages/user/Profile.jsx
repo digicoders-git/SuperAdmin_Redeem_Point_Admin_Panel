@@ -22,31 +22,41 @@ const getTier = (points, tiers = null) => {
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 
-const serverBase = import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") || "";
+const serverBase = (import.meta.env.VITE_IMAGE_URL || import.meta.env.VITE_API_URL || "").replace(/\/api\/?$/, "").replace(/\/$/, "");
+
 const getFullUrl = (path) => {
   if (!path) return "";
 
   // Normalize slashes
   let cleanPath = path.replace(/\\/g, "/");
 
-  if (cleanPath.startsWith("http")) {
-    const productionDomain = "https://api.inaamify.com";
-    if (cleanPath.startsWith(productionDomain)) {
-      cleanPath = cleanPath.substring(productionDomain.length);
-    } else {
+  // If already an absolute URL (Cloudinary, Google, etc.)
+  if (cleanPath.startsWith("http://") || cleanPath.startsWith("https://")) {
+    if (!cleanPath.includes("api.inaamify.com") && !cleanPath.includes("localhost")) {
       return cleanPath;
+    }
+    // If it points to api.inaamify.com or localhost, extract the relative path
+    const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
+    if (uploadsIndex !== -1) {
+      cleanPath = cleanPath.substring(uploadsIndex + 8);
+    } else {
+      const adminPhotosIndex = cleanPath.toLowerCase().indexOf("admin-photos/");
+      if (adminPhotosIndex !== -1) {
+        cleanPath = cleanPath.substring(adminPhotosIndex);
+      } else {
+        return cleanPath;
+      }
+    }
+  } else {
+    const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
+    if (uploadsIndex !== -1) {
+      cleanPath = cleanPath.substring(uploadsIndex + 8);
+    } else {
+      cleanPath = cleanPath.replace(/^\/+/, "");
     }
   }
 
-  // Aggressively find the 'uploads' part and take everything after it
-  const uploadsIndex = cleanPath.toLowerCase().indexOf("uploads/");
-  if (uploadsIndex !== -1) {
-    cleanPath = cleanPath.substring(uploadsIndex + 8); // Skip 'uploads/'
-  } else {
-    cleanPath = cleanPath.replace(/^\/+/, "");
-  }
-
-  return `${serverBase}/uploads/${cleanPath}`;
+  return serverBase ? `${serverBase}/uploads/${cleanPath}` : `/uploads/${cleanPath}`;
 };
 
 export default function Profile() {
@@ -225,7 +235,7 @@ export default function Profile() {
                   src={getFullUrl(adminData.profilePhoto)} 
                   alt="Admin" 
                   className="w-full h-full object-cover" 
-                  crossOrigin="anonymous"
+                  onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
                 />
               </div>
             )}
@@ -240,15 +250,19 @@ export default function Profile() {
       <div className="px-5 -mt-16 relative z-20">
         <div className="bg-white rounded-[32px] p-6 flex flex-col items-center shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 mb-6">
           <div className="relative transform -translate-y-12 mb-4">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#800000] to-[#6b0000] flex items-center justify-center text-white text-4xl font-extrabold shadow-lg shadow-[#800000]/20 border-4 border-white overflow-hidden">
-              {(edit ? form.profilePhoto : profile.profilePhoto) ? (
+            <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#800000] to-[#6b0000] flex items-center justify-center text-white text-4xl font-extrabold shadow-lg shadow-[#800000]/20 border-4 border-white overflow-hidden relative">
+              <span className="text-4xl font-extrabold text-white select-none">
+                {profile.name?.[0]?.toUpperCase() || "U"}
+              </span>
+              {(edit ? form.profilePhoto : profile.profilePhoto) && (
                 <img
                   src={getFullUrl(edit ? form.profilePhoto : profile.profilePhoto)}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
-              ) : (
-                profile.name?.[0]?.toUpperCase()
               )}
             </div>
             <label className="absolute bottom-0 right-0 bg-[#f97316] p-2 rounded-full text-white cursor-pointer shadow-md border-2 border-white hover:bg-[#eb6a10] transition-colors">
