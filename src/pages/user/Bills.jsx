@@ -1,8 +1,65 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
-import { Gift, User, Plus, FileText, IndianRupee, Loader2 } from "lucide-react";
+import { Gift, User, Plus, FileText, IndianRupee, Loader2, X } from "lucide-react";
 import Swal from "sweetalert2";
+
+// Client-side image compression to prevent Cloudinary/Nginx limits and speed up mobile uploads
+const compressImage = async (file) => {
+  if (!file) return file;
+  // If it's a PDF, do not compress
+  if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        const maxDimension = 1600;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+            const compressedFile = new File([blob], cleanName, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          0.82
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+};
 
 export default function Bills() {
   const navigate = useNavigate();
@@ -69,18 +126,27 @@ export default function Bills() {
       Swal.fire({ icon: "warning", title: "No Shop Linked", text: "Please register with a shop first to upload bills and earn points.", confirmButtonColor: "#800000" });
       return;
     }
-    if (!file) return;
+    if (!file) {
+      Swal.fire({ icon: "warning", title: "No File Selected", text: "Please select a bill photo or PDF first.", confirmButtonColor: "#800000" });
+      return;
+    }
     setUploading(true);
     try {
+      const processedFile = await compressImage(file);
       const fd = new FormData();
-      fd.append("billFile", file);
+      fd.append("billFile", processedFile);
       fd.append("amount", amount);
-      await api.post("/bills/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-      Swal.fire({ icon: "success", title: "Bill Uploaded!", timer: 1500, showConfirmButton: false });
+      await api.post("/bills/upload", fd);
+      Swal.fire({ icon: "success", title: "Bill Uploaded!", text: "Your purchase slip has been submitted successfully.", timer: 1800, showConfirmButton: false });
       setAmount(""); setFile(null); e.target.reset();
       load(); loadProfile();
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Upload Failed", text: err.response?.data?.message || "Upload failed" });
+      const errorMsg =
+        err.response?.data?.message ||
+        (typeof err.response?.data === "string" && !err.response.data.includes("<html") ? err.response.data : "") ||
+        err.message ||
+        "Upload failed. Please check your internet connection and try again.";
+      Swal.fire({ icon: "error", title: "Upload Failed", text: errorMsg });
     } finally {
       setUploading(false);
     }
@@ -155,16 +221,40 @@ export default function Bills() {
             </div>
           </div>
           <form onSubmit={upload} className="flex flex-col gap-4">
-            <label className="border-2 border-dashed border-blue-400 bg-blue-50 rounded-xl cursor-pointer flex items-center justify-center py-3 px-4 min-h-[50px]">
-              {file ? <span className="text-blue-600 font-bold text-[14px] truncate px-2">{file.name}</span> : <span className="text-blue-600 font-bold text-[14px]">📎 Select Purchase Slip</span>}
-              <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+            <label className="border-2 border-dashed border-blue-400 bg-blue-50 rounded-xl cursor-pointer flex items-center justify-between py-3 px-4 min-h-[50px] relative">
+              {file ? (
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-blue-600 font-bold text-[14px] truncate px-2">📎 {file.name}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setFile(null);
+                    }}
+                    className="text-gray-400 hover:text-red-500 p-1 font-bold text-sm"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <span className="text-blue-600 font-bold text-[14px] w-full text-center">📎 Select Purchase Slip</span>
+              )}
+              <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
             </label>
             <div className="relative">
               <input type="number" placeholder="Total Amount Spent" value={amount} onChange={(e) => setAmount(e.target.value)} required className="w-full border-2 border-gray-100 rounded-[16px] px-5 py-3.5 text-[15px] font-medium text-gray-800 focus:outline-none focus:border-[#f97316]/50 bg-white pr-14" />
               <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#8c9fba] font-bold text-sm">INR</span>
             </div>
-            <button type="submit" disabled={uploading || !file || !amount} className="w-full bg-[#f97316] text-white font-bold text-[16px] py-[14px] rounded-[16px] shadow-[0_5px_15px_rgba(249,115,22,0.3)] transition-all disabled:opacity-50">
-              {uploading ? "Submitting..." : "Submit to earn points"}
+            <button type="submit" disabled={uploading || !file || !amount} className="w-full bg-[#f97316] text-white font-bold text-[16px] py-[14px] rounded-[16px] shadow-[0_5px_15px_rgba(249,115,22,0.3)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              {uploading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                "Submit to earn points"
+              )}
             </button>
           </form>
         </div>
